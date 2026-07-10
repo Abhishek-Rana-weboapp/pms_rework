@@ -1,0 +1,74 @@
+import { useCurrentProject } from "@/product/project/api/project/projectQueries";
+import ProjectTabs from "@/product/project/components/ProjectTabs";
+import { useProjectFormDialog } from "@/product/project/context/projectFormDialogStore";
+import { Badge } from "@/shared/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/components/ui/dropdown-menu";
+import { Progress } from "@/shared/components/ui/progress";
+import { Spinner } from "@/shared/components/ui/spinner";
+import { ArrowLeft, MoreHorizontalIcon, Pencil } from "lucide-react";
+import React, { Suspense } from "react";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
+
+const ProjectLayout = () => {
+  const {orgUuid} = useParams()
+  const navigate = useNavigate();
+  const {
+    data: projectData,
+    isLoading: projectLoading,
+    error,
+  } = useCurrentProject();
+
+  const {openEdit} = useProjectFormDialog();
+
+  if (projectLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>something went wrong</div>;
+  }
+
+  return (
+    <div className="h-full w-full overflow-x-auto">
+      <div className="bg-white p-5">
+            <button className="cursor-pointer flex mb-2 items-center text-gray-500" onClick={()=>{navigate(`/${orgUuid}/projects`)}}><ArrowLeft className="md:size-4 size-3 " />
+            <span className="text-xs">All Projects</span>
+            </button>
+       <div className="flex justify-between mb-4">
+         <div className="flex items-center gap-2">
+           <h2 className="sm:text-xl text-lg font-semibold">{projectData.project_name}</h2>
+           <Badge>{projectData.project_status}</Badge>
+         </div>  
+
+         <div className="flex items-center gap-3">
+            <div className="text-sm flex items-center gap-2">
+              <Progress value={projectData.project_progress} className={"sm:w-44 w-20 h-2.5"}  />
+              {Number(projectData.project_progress).toFixed(0)}%
+            </div>
+
+            <DropdownMenu modal={false}>
+                <DropdownMenuTrigger className={"p-2 rounded-lg border border-neutral-300 cursor-pointer"}>
+                  <MoreHorizontalIcon className="md:size-4 size-3" />
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent>
+                    <DropdownMenuItem onClick={()=>openEdit(projectData)} className={"flex items-center text-gray-600 cursor-pointer"}>
+                      <Pencil />
+                        Edit details
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+         </div>
+       </div> 
+      <ProjectTabs />
+      </div>
+      <div className="bg-slate-50 h-full p-4">
+        <Suspense fallback={<Spinner />}>
+        <Outlet />
+        </Suspense>
+      </div>
+    </div>
+  );
+};
+
+export default ProjectLayout;
