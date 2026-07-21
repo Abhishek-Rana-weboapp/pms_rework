@@ -22,7 +22,7 @@ const ProjectTabs = () => {
       >
         <TabsList variant="line" className="w-max">
           {projectTabsData.map((tab) => (
-            <TabsTrigger key={tab.to} value={tab.to}>
+            <TabsTrigger className={"cursor-pointer"} key={tab.to} value={tab.to}>
               {tab.title}
             </TabsTrigger>
           ))}

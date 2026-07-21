@@ -4,6 +4,7 @@ const DashboardLayout = lazy(()=>import("@/app/layouts/DashboardLayout"));
 const Dashboard = lazy(()=>import("./pages/Dashboard"));
 const EmployeeList = lazy(()=>import("./pages/EmployeeList"));
 const ClientList = lazy(()=>import("./pages/ClientList"));
+const PersonDetails = lazy(()=>import("./pages/PersonDetails"));
 const ProjectList = lazy(()=>import("./pages/ProjectList"));
 const AllReports = lazy(()=>import("./pages/AllReports"));
 const ProjectLayout =  lazy(()=>import("@/app/layouts/ProjectLayout"));
@@ -20,11 +21,17 @@ export const dashboardRoutes = [
             },
             {
                 path:"employees",
-                element:<EmployeeList/>
+                children:[
+                    { index:true, element:<EmployeeList/> },
+                    { path:":employeeId", element:<PersonDetails/> },
+                ]
             },
             {
                 path:"clients",
-                element:<ClientList/>
+                children:[
+                    { index:true, element:<ClientList/> },
+                    { path:":clientId", element:<PersonDetails/> },
+                ]
             },
             {
                 path:"projects",

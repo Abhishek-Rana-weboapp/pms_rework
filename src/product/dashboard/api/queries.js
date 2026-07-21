@@ -1,6 +1,6 @@
 import { queryKeys } from "@/shared/services/api/queryKeys"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import { getAllClients, getAllEmployees, getProjects } from "./endpoints"
+import { getAllClients, getAllEmployees, getDashboard, getProjects, getReports } from "./endpoints"
 
 
 /**
@@ -20,18 +20,68 @@ export const useProjects = ({ page = 1, page_size = 10, search = "" } = {}, opti
 }
 
 
-export const useEmployees = (options = {})=>{
+/**
+ * Server-paginated employee list. Search + status are applied on the server so
+ * paging stays consistent with the active filters. `status` is the active flag
+ * as "true" | "false" (omit for all).
+ *
+ * @param {{ page?: number, pageSize?: number, searchData?: string, status?: string }} [filters]
+ */
+export const useEmployees = (
+    { page = 1, pageSize = 20, searchData = "", status } = {},
+    options = {},
+) => {
+    const filters = {
+        page,
+        page_size: pageSize,
+        search: searchData,
+        status,
+    };
     return useQuery({
-        queryKey:queryKeys.employees.all,
-        queryFn:getAllEmployees,
-        ...options
+        queryKey: queryKeys.employees.list(filters),
+        queryFn: () => getAllEmployees(filters),
+        placeholderData: keepPreviousData, // keep the current page visible while the next loads
+        ...options,
     })
 }
 
-export const useClients = ({ searchData = "", filterStatus = "" } = {}, options = {}) => {
+/**
+ * Server-paginated client list. Mirrors {@link useEmployees}: search + status
+ * are applied on the server. `status` is the active flag as "true" | "false".
+ *
+ * @param {{ page?: number, pageSize?: number, searchData?: string, status?: string }} [filters]
+ */
+export const useClients = (
+    { page = 1, pageSize = 20, searchData = "", status } = {},
+    options = {},
+) => {
+    const filters = {
+        page,
+        page_size: pageSize,
+        search: searchData,
+        status,
+    };
     return useQuery({
-        queryKey: queryKeys.clients.list({ searchData, filterStatus }),
-        queryFn: () => getAllClients({ searchData, filterStatus }),
+        queryKey: queryKeys.clients.list(filters),
+        queryFn: () => getAllClients(filters),
+        placeholderData: keepPreviousData,
         ...options,
+    })
+}
+
+
+
+export const useDashboard = ()=>{
+    return useQuery({
+        queryKey:queryKeys.dashboard.all,
+        queryFn:getDashboard
+    })
+}
+
+
+export const useReports = ()=>{
+    return useQuery({
+        queryKey:queryKeys.reports.all,
+        queryFn:getReports
     })
 }

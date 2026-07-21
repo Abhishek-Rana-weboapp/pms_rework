@@ -12,6 +12,17 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { roleSchema } from "../config.js/settingsSchemas";
+import { useCreateRole, useUpdateRole } from "../api/settingsMutations";
+import { applyServerFieldErrors } from "@/shared/lib/formErrors";
+
+// Field names this form renders — backend validation errors for these show inline;
+// anything else falls back to the mutation wrapper's toast.
+const FORM_FIELDS = [
+  "role_name",
+  "parent_role",
+  "shared_data_with_peers",
+  "description",
+];
 
 // Normalize a role record from the API into the shape the form fields expect.
 // `shared_data_with_peers` may arrive as a boolean, a "yes"/"no" string, or null.
@@ -24,8 +35,8 @@ const toFormValues = (role) => {
       shared === true || shared === "yes"
         ? "yes"
         : shared === false || shared === "no"
-        ? "no"
-        : "",
+          ? "no"
+          : "",
     description: role?.description ?? "",
   };
 };
@@ -42,7 +53,8 @@ const RoleForm = ({
     register,
     control,
     handleSubmit,
-    formState: { errors, isDirty, isValid, isSubmitting },
+    setError,
+    formState: { errors, isDirty, isValid },
   } = useForm({
     resolver: zodResolver(roleSchema),
     // In edit mode the dialog remounts this component (keyed on the role id in
@@ -50,27 +62,27 @@ const RoleForm = ({
     defaultValues: toFormValues(role),
   });
 
-  console.log(errors);
-  
-
-  // ───────────────────────────────────────────────────────────────
-  // 🔌 Add your create/update role mutation here, then call it inside
-  // `onSubmit`. Wire its callbacks to the props below so the dialog
-  // closes on BOTH a successful and a failed request, e.g.:
-  //
-  //   const { mutate, isPending } = useSaveRole({
-  //     onSuccess: () => onSuccess?.(),
-  //     onError:   () => onError?.(),
-  //   });
-  //
-  // Then swap `isSubmitting` for `isPending` on the submit button.
-  // ───────────────────────────────────────────────────────────────
+  const createRoleMutation = useCreateRole();
+  const updateRoleMutation = useUpdateRole();
+  const isPending = createRoleMutation.isPending || updateRoleMutation.isPending;
 
   const onSubmit = (values) => {
-    // Create -> POST; edit -> PUT/PATCH with the role id. See the note in
-    // RolesList for the recommended single-hook approach.
-    // mutate(mode === "edit" ? { id: role.id, data: values } : values);
-    void values;
+    const callbacks = {
+      onSuccess: () => onSuccess?.(),
+      // Map backend validation errors onto the fields and keep the dialog open so
+      // they stay visible; only close for generic failures (network/5xx/etc.).
+      onError: (error) => {
+        const handled = applyServerFieldErrors(error, setError, {
+          fields: FORM_FIELDS,
+        });
+        if (!handled) onError?.();
+      },
+    };
+    if (mode === "edit") {
+      updateRoleMutation.mutate({ id: role?.id, payload: values }, callbacks);
+    } else {
+      createRoleMutation.mutate(values, callbacks);
+    }
   };
 
   return (
@@ -111,7 +123,7 @@ const RoleForm = ({
               >
                 <SelectValue placeholder="-Select report to-" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {reportOptions?.map((opt) => (
                   <SelectItem key={opt.value} value={String(opt.value)}>
                     {opt.label}
@@ -180,8 +192,8 @@ const RoleForm = ({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting || !isDirty || !isValid}>
-          {isSubmitting ? (
+        <Button type="submit" disabled={isPending || !isDirty || !isValid}>
+          {isPending ? (
             <>
               <Spinner />
               Saving...

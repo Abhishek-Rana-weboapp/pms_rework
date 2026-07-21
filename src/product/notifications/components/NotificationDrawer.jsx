@@ -33,9 +33,11 @@ const NotificationDrawer = () => {
 
   const trigger = (
     <Button variant="ghost" size="icon" className="relative" aria-label="Open notifications">
-      <Bell />
+      <Bell className="md:size-6" />
       {notifications.counts.unread > 0 && (
-        <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-primary ring-2 ring-background" />
+        <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-primary ring-2 ring-background">
+           {notifications.counts.unread}
+        </span>
       )}
     </Button>
   );
@@ -60,8 +62,8 @@ const NotificationDrawer = () => {
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       <SheetContent className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
         <SheetHeader className="border-b">
-          <SheetTitle>{HEADER_TITLE}</SheetTitle>
-          <SheetDescription>{HEADER_SUBTITLE}</SheetDescription>
+          <SheetTitle className={"text-base"}>{HEADER_TITLE}</SheetTitle>
+          <SheetDescription className={"text-sm"}>{HEADER_SUBTITLE}</SheetDescription>
         </SheetHeader>
         <NotificationPanel {...notifications} />
       </SheetContent>

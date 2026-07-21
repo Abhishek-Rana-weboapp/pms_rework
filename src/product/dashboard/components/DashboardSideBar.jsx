@@ -43,7 +43,12 @@ const DashboardSideBar = () => {
                       tooltip={item.title}
                       className="h-10 text-gray-600 hover:bg-primary/10 hover:text-primary aria-[current=page]:bg-primary/10 aria-[current=page]:border-l-4 transition aria-[current=page]:border-primary  aria-[current=page]:text-primary aria-[current=page]:font-medium"
                     >
-                      <NavLink to={to} end={item.to === ""}>
+                      <NavLink
+                        to={to}
+                        end={item.to === ""}
+                        onMouseEnter={item.prefetch}
+                        onFocus={item.prefetch}
+                      >
                         {item.icon}
                         <span>{item.title}</span>
                       </NavLink>

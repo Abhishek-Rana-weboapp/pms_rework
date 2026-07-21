@@ -11,6 +11,14 @@ export const createProject = async(data)=>{
 }
 
 
+// Edit an existing project. Sends multipart FormData (so new attachments can
+// ride along); the axios client sets the multipart content-type automatically.
+export const updateProject = async ({ id, formData }) => {
+  const res = await api.put(`project/${id}/`, formData);
+  return res.data.data;
+};
+
+
 
 export const getArtifactsList = async ({
   projectId,
@@ -42,4 +50,20 @@ export const getProjectStatuses = async (projectId) => {
     const res  = await api.get(`project-status/?project_id=${projectId}`);
     return res.data?.data?.results;
 }
+
+
+
+// Board = the active sprint's columns (statuses) + their artifacts (items),
+// plus sprint_details. Shape: { columns: [{ status_id, status_name, items }], sprint_details }.
+export const getBoards = async (projectId) => {
+    const res = await api.get(`project/${projectId}/board/`);
+    return res.data?.data ?? {};
+};
+
+// Persist a drag: move artifact `id` to `status` (a status_id) at `position`
+// (its index within the destination column).
+export const moveArtifact = async ({ id, status, position }) => {
+    const res = await api.patch(`artifact/${id}/move/`, { status, position });
+    return res.data?.data;
+};
 

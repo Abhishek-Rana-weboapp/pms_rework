@@ -87,7 +87,7 @@ export const ProjectFormDialogProvider = ({ children }) => {
 
           <div className="overflow-y-auto px-6 pb-6 scrollbar-thin">
             <ProjectForm
-              key={isEdit ? (state.project?.id ?? "edit") : "add"}
+              key={isEdit ? "edit" : "add"}
               mode={state.mode}
               project={state.project}
               onSuccess={close}

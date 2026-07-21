@@ -7,11 +7,17 @@ import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
 import { toast } from "sonner";
 
-import { Field, FieldError, FieldLabel } from "@/shared/components/ui/field";
+import Wrapper from "@/shared/components/wrappers/Wrapper";
+import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Button } from "@/shared/components/ui/button";
 import { Spinner } from "@/shared/components/ui/spinner";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/shared/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -19,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
+
 import { capitalizeFirst } from "@/shared/lib/helpers";
 import { applyServerFieldErrors } from "@/shared/lib/formErrors";
 import {
@@ -28,10 +35,17 @@ import {
 import { useUser, useProfiles } from "../api/settingsQueries";
 import { useRolesTree } from "../api/rolesQueries";
 import { useInviteUser, useUpdateUser } from "../api/settingsMutations";
-import Wrapper from "@/shared/components/wrappers/Wrapper";
 
-// Fields this form renders — a backend error for any of these is shown inline;
-// anything else falls back to a toast (see applyServerFieldErrors).
+const GENDERS = ["Male", "Female"];
+const USER_TYPES = ["Employee", "Client"];
+
+// CEO role and Administrator profile are assigned automatically and can't be
+// picked/reassigned from this form, so they're hidden from the option lists.
+const HIDDEN_ROLE = "ceo";
+const HIDDEN_PROFILE = "administrator";
+
+// Field names this form renders. A backend validation error for any of them is
+// shown inline; anything else (e.g. non_field_errors) falls back to a toast.
 const FORM_FIELDS = [
   "first_name",
   "last_name",
@@ -45,7 +59,7 @@ const FORM_FIELDS = [
   "branch",
 ];
 
-// The roles API returns a tree; the Role select wants a flat list.
+// The roles endpoint returns a nested tree; the Role <Select> needs a flat list.
 const flattenRoles = (nodes = [], acc = []) => {
   nodes.forEach((node) => {
     acc.push({ id: node.id, role_name: node.role_name });
@@ -54,57 +68,47 @@ const flattenRoles = (nodes = [], acc = []) => {
   return acc;
 };
 
-const InviteUserForm = () => {
+// Map a loaded user record onto the form's shape. Ids arrive as `*_details.*_id`
+// and are stored as strings because that's what the <Select> options use.
+const userToFormValues = (user) => {
+  const roleId = user.role_details?.role_id ?? user.role;
+  const profileId = user.profile_details?.profile_id ?? user.profile;
+  return {
+    first_name: user.first_name || "",
+    last_name: user.last_name || "",
+    gender: user.gender || "",
+    role: roleId != null ? String(roleId) : "",
+    profile: profileId != null ? String(profileId) : "",
+    user_type: user.user_type || "",
+    email: user.email || "",
+    contact_number: user.contact_number || "",
+    current_address: user.current_address || "",
+    branch: user.branch != null ? String(user.branch) : "",
+    is_add_to_branch: !!user.branch,
+  };
+};
+
+/**
+ * The actual form. Rendered only once every data dependency is loaded, so
+ * `defaultValues` already holds the resolved role/profile ids — that's what lets
+ * the Selects show the right option on first paint (no reset/effect race).
+ */
+const UserFormFields = ({
+  isEdit,
+  userId,
+  roles,
+  profiles,
+  defaultValues,
+  initialImage,
+}) => {
   const navigate = useNavigate();
-  const { userId } = useParams();
-  const isEdit = !!userId;
 
-  const { data: rolesTree } = useRolesTree();
-  const { data: profilesData } = useProfiles();
-  const { data: editUser, isLoading: loadingUser } = useUser(userId);
-
-  
-  const roles = useMemo(() => flattenRoles(rolesTree ?? []), [rolesTree]);
-  const profiles = useMemo(() => profilesData ?? [], [profilesData]);
-  
   const [file, setFile] = useState(null);
-  const [previewImage, setPreviewImage] = useState("");
+  const [previewImage, setPreviewImage] = useState(initialImage);
 
-  // Edit-mode prefill. Resolve role/profile against the option lists from
-  // useRolesTree / useProfiles so the value always matches a real Select option,
-  // and recompute once those lists finish loading. Returns undefined in create
-  // mode so RHF keeps using defaultValues.
-  const editValues = useMemo(() => {
-    if (!editUser) return undefined;
-
-    const roleMatch = roles.find(
-      (r) => String(r.id) === String(editUser.role_details?.role_id),
-    );
-    const profileMatch = profiles.find(
-      (p) => String(p.id) === String(editUser.profile_details?.profile_id),
-    );
-
-    console.log({
-    editUser,
-    roles,
-    profiles,
-    roleId: editUser?.role_details?.role_id,
-    profileId: editUser?.profile_details?.profile_id,
-  });
-    return {
-      first_name: editUser.first_name || "",
-      last_name: editUser.last_name || "",
-      gender: editUser.gender || "",
-      role: roleMatch ? String(roleMatch.id) : "",
-      profile: profileMatch ? String(profileMatch.id) : "",
-      user_type: editUser.user_type || "",
-      contact_number: editUser.contact_number || "",
-      email: editUser.email || "",
-      current_address: editUser.current_address || "",
-      branch: editUser.branch ? String(editUser.branch) : "",
-      is_add_to_branch: !!editUser.branch,
-    };
-  }, [editUser, roles, profiles]);
+  const inviteMutation = useInviteUser();
+  const updateMutation = useUpdateUser();
+  const isPending = inviteMutation.isPending || updateMutation.isPending;
 
   const {
     register,
@@ -116,46 +120,40 @@ const InviteUserForm = () => {
     formState: { errors, isDirty },
   } = useForm({
     resolver: zodResolver(inviteUserSchema),
-    defaultValues: inviteUserDefaults,
-    values: editValues,
-    resetOptions: { keepDirtyValues: true },
+    defaultValues,
   });
 
-  // CEO role and Administrator profile are fixed and can't be reassigned here.
-  const roleValue = watch("role");
-  const isCeoRole = roles.some(
-    (r) =>
-      String(r.id) === String(roleValue) &&
-      r.role_name?.toLowerCase() === "ceo",
-  );
-  const profileValue = watch("profile");
-  const isAdministratorProfile = profiles.some(
-    (p) =>
-      String(p.id) === String(profileValue) &&
-      p.profile_name?.toLowerCase() === "administrator",
-  );
-
-  // The image preview isn't form state, so keep it synced on its own.
+  // Show a local preview for a newly-picked file and revoke its object URL.
   useEffect(() => {
-    if (editUser) setPreviewImage(editUser.user_image || "");
-  }, [editUser]);
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPreviewImage(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
-  const inviteMutation = useInviteUser();
-  const updateMutation = useUpdateUser();
-  const isPending = inviteMutation.isPending || updateMutation.isPending;
+  // The current role/profile may be CEO/Administrator (hidden from the choices).
+  // When so, keep that option visible but lock the field so it can't be changed.
+  const roleValue = watch("role");
+  const profileValue = watch("profile");
+  const isHiddenRole =
+    roles
+      .find((r) => String(r.id) === String(roleValue))
+      ?.role_name?.toLowerCase() === HIDDEN_ROLE;
+  const isHiddenProfile =
+    profiles
+      .find((p) => String(p.id) === String(profileValue))
+      ?.profile_name?.toLowerCase() === HIDDEN_PROFILE;
 
-  const handleFileChange = (e) => {
-    const imageFile = e.target.files?.[0];
-    if (imageFile) {
-      setFile(imageFile);
-      setPreviewImage(URL.createObjectURL(imageFile));
-    }
-  };
-
-  const removeFile = () => {
-    setFile(null);
-    setPreviewImage("");
-  };
+  const roleOptions = roles.filter(
+    (r) =>
+      r.role_name?.toLowerCase() !== HIDDEN_ROLE ||
+      String(r.id) === String(roleValue),
+  );
+  const profileOptions = profiles.filter(
+    (p) =>
+      p.profile_name?.toLowerCase() !== HIDDEN_PROFILE ||
+      String(p.id) === String(profileValue),
+  );
 
   const onSubmit = (data) => {
     if (isEdit && !isDirty && !file) {
@@ -170,7 +168,7 @@ const InviteUserForm = () => {
     if (file) {
       formData.append("user_image", file);
     } else if (!previewImage) {
-      // Image was removed and none re-selected -> clear it on the server.
+      // Image cleared and no new one chosen -> tell the server to clear it.
       formData.append("user_image", "");
     }
 
@@ -199,44 +197,36 @@ const InviteUserForm = () => {
     }
   };
 
-  if (isEdit && loadingUser) {
-    return (
-      <div className="flex items-center justify-center gap-2 py-20 text-muted-foreground">
-        <Spinner /> Loading user data...
-      </div>
-    );
-  }
-
   return (
     <Wrapper className="space-y-6">
       {/* Header */}
-      <div className=" border-b bg-white rounded-md shadow border-gray-200 p-4 flex items-start gap-3">
+      <div className="flex items-start gap-3 rounded-md border border-gray-200 bg-white p-4 shadow">
         <Button variant="outline" onClick={() => navigate(-1)}>
           <ArrowLeft />
         </Button>
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold md:text-lg">
+          <h1 className="text-lg font-semibold">
             {isEdit ? "Update User" : "Invite New User"}
-          </h2>
+          </h1>
           <p className="text-sm text-gray-500">
             {isEdit
               ? "Fill in the details to update the user."
-              : "Fill in the details to add a new user."}
+              : "Fill in the details to invite a new user."}
           </p>
         </div>
       </div>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white rounded-md shadow"
+        className="rounded-md bg-white shadow"
       >
         <fieldset
           disabled={isPending}
-          className="space-y-4 p-4 disabled:opacity-60"
+          className="space-y-6 p-4 disabled:opacity-60"
         >
-          <h3 className="text-lg font-medium">Personal Information</h3>
+          <h2 className="text-base font-semibold">Personal Information</h2>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FieldGroup className="grid gap-4 md:grid-cols-2">
             {/* First Name */}
             <Field data-invalid={!!errors.first_name}>
               <FieldLabel htmlFor="first_name">
@@ -245,13 +235,14 @@ const InviteUserForm = () => {
               <Input
                 id="first_name"
                 placeholder="Enter first name"
+                aria-invalid={!!errors.first_name}
                 {...register("first_name")}
                 onChange={(e) =>
                   setValue("first_name", capitalizeFirst(e.target.value), {
                     shouldDirty: true,
+                    shouldValidate: !!errors.first_name,
                   })
                 }
-                aria-invalid={!!errors.first_name}
               />
               {errors.first_name && (
                 <FieldError>{errors.first_name.message}</FieldError>
@@ -266,13 +257,14 @@ const InviteUserForm = () => {
               <Input
                 id="last_name"
                 placeholder="Enter last name"
+                aria-invalid={!!errors.last_name}
                 {...register("last_name")}
                 onChange={(e) =>
                   setValue("last_name", capitalizeFirst(e.target.value), {
                     shouldDirty: true,
+                    shouldValidate: !!errors.last_name,
                   })
                 }
-                aria-invalid={!!errors.last_name}
               />
               {errors.last_name && (
                 <FieldError>{errors.last_name.message}</FieldError>
@@ -280,7 +272,7 @@ const InviteUserForm = () => {
             </Field>
 
             {/* Gender */}
-            <Field>
+            <Field data-invalid={!!errors.gender}>
               <FieldLabel htmlFor="gender">Gender</FieldLabel>
               <Controller
                 control={control}
@@ -290,17 +282,20 @@ const InviteUserForm = () => {
                     value={field.value || undefined}
                     onValueChange={field.onChange}
                   >
-                    {console.log(field)}
                     <SelectTrigger id="gender" className="w-full">
-                      <SelectValue placeholder="--Select gender--" />
+                      <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Male">Male</SelectItem>
-                      <SelectItem value="Female">Female</SelectItem>
+                    <SelectContent position="popper">
+                      {GENDERS.map((g) => (
+                        <SelectItem key={g} value={g}>
+                          {g}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
               />
+              {errors.gender && <FieldError>{errors.gender.message}</FieldError>}
             </Field>
 
             {/* Role */}
@@ -315,30 +310,28 @@ const InviteUserForm = () => {
                   <Select
                     value={field.value ? String(field.value) : undefined}
                     onValueChange={field.onChange}
-                    disabled={isCeoRole}
+                    disabled={isHiddenRole}
                   >
                     <SelectTrigger
                       id="role"
                       className="w-full"
                       aria-invalid={!!errors.role}
                     >
-                      <SelectValue placeholder="--Select--" />
+                      <SelectValue placeholder="Select role" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {roles
-                        .filter((r) => r.role_name?.toLowerCase() !== "ceo")
-                        .map((r) => (
-                          <SelectItem key={r.id} value={String(r.id)}>
-                            {r.role_name}
-                          </SelectItem>
-                        ))}
+                    <SelectContent position="popper">
+                      {roleOptions.map((r) => (
+                        <SelectItem key={r.id} value={String(r.id)}>
+                          {r.role_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
               />
-              {isCeoRole && (
+              {isHiddenRole && (
                 <p className="text-xs text-muted-foreground">
-                  CEO role cannot be changed.
+                  This role is assigned automatically and can't be changed.
                 </p>
               )}
               {errors.role && <FieldError>{errors.role.message}</FieldError>}
@@ -362,11 +355,14 @@ const InviteUserForm = () => {
                       className="w-full"
                       aria-invalid={!!errors.user_type}
                     >
-                      <SelectValue placeholder="--Select User Type--" />
+                      <SelectValue placeholder="Select user type" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Employee">Employee</SelectItem>
-                      <SelectItem value="Client">Client</SelectItem>
+                    <SelectContent position="popper">
+                      {USER_TYPES.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
@@ -388,86 +384,81 @@ const InviteUserForm = () => {
                   <Select
                     value={field.value ? String(field.value) : undefined}
                     onValueChange={field.onChange}
-                    disabled={isAdministratorProfile}
+                    disabled={isHiddenProfile}
                   >
                     <SelectTrigger
                       id="profile"
                       className="w-full capitalize"
                       aria-invalid={!!errors.profile}
                     >
-                      <SelectValue placeholder="--Select Profile--" />
+                      <SelectValue placeholder="Select profile" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {profiles
-                        .filter(
-                          (p) =>
-                            p.profile_name?.toLowerCase() !== "administrator",
-                        )
-                        .map((p) => (
-                          <SelectItem
-                            key={p.id}
-                            value={String(p.id)}
-                            className="capitalize"
-                          >
-                            {p.profile_name}
-                          </SelectItem>
-                        ))}
+                    <SelectContent position="popper">
+                      {profileOptions.map((p) => (
+                        <SelectItem
+                          key={p.id}
+                          value={String(p.id)}
+                          className="capitalize"
+                        >
+                          {p.profile_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 )}
               />
-              {isAdministratorProfile && (
+              {isHiddenProfile && (
                 <p className="text-xs text-muted-foreground">
-                  Administrator profile cannot be changed.
+                  This profile is assigned automatically and can't be changed.
                 </p>
               )}
               {errors.profile && (
                 <FieldError>{errors.profile.message}</FieldError>
               )}
             </Field>
-          </div>
+          </FieldGroup>
 
-          {/* Upload Image */}
+          {/* Profile image */}
           <Field>
-            <FieldLabel>Upload Profile Image</FieldLabel>
-            {!previewImage ? (
-              <label className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded border-2 border-dotted border-gray-300 bg-white transition hover:border-gray-500">
-                <input
-                  type="file"
-                  accept="image/png, image/jpeg"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-                <Upload size={28} className="text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Upload Here</p>
-                <p className="text-xs text-muted-foreground">
-                  PNG, JPG up to 5MB
-                </p>
-              </label>
-            ) : (
-              <div className="relative flex h-32 w-full items-center justify-center rounded border-2 border-dotted border-gray-300">
+            <FieldLabel>Profile Image</FieldLabel>
+            {previewImage ? (
+              <div className="relative flex h-32 w-full items-center justify-center rounded-md border-2 border-dashed border-gray-300">
                 <img
                   src={previewImage}
-                  alt="preview"
+                  alt="Profile preview"
                   className="h-28 object-contain"
                 />
                 <button
                   type="button"
-                  onClick={removeFile}
-                  className="absolute top-2 right-2 cursor-pointer text-destructive hover:opacity-80"
+                  onClick={() => {
+                    setFile(null);
+                    setPreviewImage("");
+                  }}
+                  className="absolute right-2 top-2 text-sm font-medium text-destructive hover:opacity-80"
                 >
                   Remove
                 </button>
               </div>
+            ) : (
+              <label className="flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-gray-300 bg-white transition hover:border-gray-500">
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  className="hidden"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                />
+                <Upload size={26} className="text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Click to upload</p>
+                <p className="text-xs text-muted-foreground">PNG or JPG</p>
+              </label>
             )}
           </Field>
 
-          {/* Contact Information */}
-          <h3 className="text-lg font-bold">Contact Information</h3>
+          <h2 className="text-base font-semibold">Contact Information</h2>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* Phone */}
-            <Field>
+          <FieldGroup className="grid gap-4 md:grid-cols-2">
+            {/* Contact number */}
+            <Field data-invalid={!!errors.contact_number}>
               <FieldLabel htmlFor="contact_number">
                 Primary Contact Number
               </FieldLabel>
@@ -478,7 +469,7 @@ const InviteUserForm = () => {
                   <div className="flex h-9 w-full items-center rounded-md border border-input bg-transparent shadow-xs focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
                     <PhoneInput
                       defaultCountry="in"
-                      value={field.value}
+                      value={field.value || ""}
                       onChange={field.onChange}
                       className="w-full"
                       inputClassName="!border-none !shadow-none !outline-none !w-full !bg-transparent"
@@ -497,6 +488,9 @@ const InviteUserForm = () => {
                   </div>
                 )}
               />
+              {errors.contact_number && (
+                <FieldError>{errors.contact_number.message}</FieldError>
+              )}
             </Field>
 
             {/* Email */}
@@ -508,12 +502,12 @@ const InviteUserForm = () => {
                 id="email"
                 type="email"
                 placeholder="Enter email address"
-                {...register("email")}
                 aria-invalid={!!errors.email}
+                {...register("email")}
               />
               {errors.email && <FieldError>{errors.email.message}</FieldError>}
             </Field>
-          </div>
+          </FieldGroup>
 
           {/* Address */}
           <Field data-invalid={!!errors.current_address}>
@@ -522,13 +516,13 @@ const InviteUserForm = () => {
               id="current_address"
               rows={3}
               placeholder="Enter full address"
+              aria-invalid={!!errors.current_address}
               {...register("current_address")}
               onBlur={(e) =>
                 setValue("current_address", e.target.value.trim(), {
                   shouldDirty: true,
                 })
               }
-              aria-invalid={!!errors.current_address}
             />
             {errors.current_address && (
               <FieldError>{errors.current_address.message}</FieldError>
@@ -551,7 +545,7 @@ const InviteUserForm = () => {
                 {isEdit ? "Updating..." : "Sending..."}
               </>
             ) : isEdit ? (
-              "Update"
+              "Update User"
             ) : (
               "Send Invitation"
             )}
@@ -559,6 +553,50 @@ const InviteUserForm = () => {
         </div>
       </form>
     </Wrapper>
+  );
+};
+
+/**
+ * Data + loading boundary. Fetches the option lists (and the user in edit mode),
+ * waits until everything is present, then mounts the form with fully-resolved
+ * `defaultValues`. Keyed by user id so switching users remounts a clean form.
+ */
+const InviteUserForm = () => {
+  const { userId } = useParams();
+  const isEdit = !!userId;
+
+  const { data: rolesTree, isLoading: loadingRoles } = useRolesTree();
+  const { data: profilesData, isLoading: loadingProfiles } = useProfiles();
+  const { data: editUser, isLoading: loadingUser } = useUser(userId);
+
+  const roles = useMemo(() => flattenRoles(rolesTree ?? []), [rolesTree]);
+  const profiles = useMemo(() => profilesData ?? [], [profilesData]);
+
+  const isLoading =
+    loadingRoles || loadingProfiles || (isEdit && loadingUser);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center gap-2 py-20 text-muted-foreground">
+        <Spinner /> Loading...
+      </div>
+    );
+  }
+
+  const defaultValues = editUser
+    ? userToFormValues(editUser)
+    : inviteUserDefaults;
+
+  return (
+    <UserFormFields
+      key={userId ?? "new"}
+      isEdit={isEdit}
+      userId={userId}
+      roles={roles}
+      profiles={profiles}
+      defaultValues={defaultValues}
+      initialImage={editUser?.user_image || ""}
+    />
   );
 };
 

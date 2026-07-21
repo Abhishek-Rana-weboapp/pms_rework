@@ -200,3 +200,206 @@ export const statusSchema = z.object({
 });
 
 
+// ── Company settings: Organization Details tab ───────────────────────────────
+// The logo is handled as a File outside RHF, so it isn't part of this schema.
+export const orgDetailsSchema = z.object({
+  company_name: z
+    .string()
+    .trim()
+    .min(1, "Organization name is required")
+    .max(150, "Organization name must be at most 150 characters"),
+  company_size: z.string().min(1, "Company size is required"),
+  description: z
+    .string()
+    .trim()
+    .max(1000, "Description must be at most 1000 characters")
+    .optional()
+    .or(z.literal("")),
+  contact_number: z
+    .string()
+    .trim()
+    .min(7, "Enter a valid phone number")
+    .max(20, "Enter a valid phone number"),
+   website_link: z.url({
+      protocol: /^https?$/,
+      hostname: z.regexes.domain,
+    }),
+  timezone: z.string().min(1, "Timezone is required"),
+  street_address: z.string().trim().min(1, "Street address is required"),
+  pincode: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "Enter a valid 6-digit pincode"),
+  state: z.string().trim().min(1, "State is required"),
+  city: z.string().trim().min(1, "City is required"),
+  country: z.string().min(1, "Country is required"),
+});
+
+export const orgDetailsDefaults = {
+  company_name: "",
+  company_size: "",
+  description: "",
+  contact_number: "",
+  website_link: "",
+  timezone: "",
+  street_address: "",
+  pincode: "",
+  state: "",
+  city: "",
+  country: "",
+};
+
+// Map the org API record onto the Org Details form. Logo is excluded (see above).
+export const mapApiToOrgDetails = (org = {}) => ({
+  company_name: org?.company_name ?? "",
+  company_size: org?.company_size ?? "",
+  description: org?.description ?? "",
+  contact_number: org?.contact_number ?? "",
+  website_link: org?.website_link ?? "",
+  timezone: org?.timezone ?? "",
+  street_address: org?.street_address ?? "",
+  pincode: org?.pincode != null ? String(org.pincode) : "",
+  state: org?.state ?? "",
+  city: org?.city ?? "",
+  country: org?.country ?? "",
+});
+
+
+// ── Company settings: Schedule tab ───────────────────────────────────────────
+// Times are "HH:mm" strings (native <input type="time">). NOTE: confirm the
+// backend's time format — normalizeTime below trims a "HH:mm:ss" response to
+// "HH:mm"; if the API expects seconds on write, append them in onSubmit.
+const normalizeTime = (t) => (typeof t === "string" ? t.slice(0, 5) : "");
+
+// working_days may arrive as an array or a JSON-encoded string (it's written
+// with JSON.stringify), so accept both.
+const parseWorkingDays = (v) => {
+  if (Array.isArray(v)) return v;
+  if (typeof v === "string" && v.trim()) {
+    try {
+      const parsed = JSON.parse(v);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
+export const scheduleSchema = z
+  .object({
+    currency: z.string().min(1, "Currency is required"),
+    start_time: z.string().min(1, "Start time is required"),
+    end_time: z.string().min(1, "End time is required"),
+    working_days: z.array(z.string()).min(1, "Select at least one working day"),
+  })
+  // Times are zero-padded "HH:mm", so a lexicographic compare is a time compare.
+  .refine((d) => !d.start_time || !d.end_time || d.start_time < d.end_time, {
+    message: "End time must be after start time",
+    path: ["end_time"],
+  });
+
+export const scheduleDefaults = {
+  currency: "",
+  start_time: "",
+  end_time: "",
+  working_days: [],
+};
+
+export const mapApiToSchedule = (org = {}) => ({
+  currency: org?.currency ?? "",
+  start_time: normalizeTime(org?.start_time),
+  end_time: normalizeTime(org?.end_time),
+  working_days: parseWorkingDays(org?.working_days),
+});
+
+
+// ── Company settings: Branch add/edit form ───────────────────────────────────
+// The logo is handled as a File outside RHF, so it isn't part of this schema.
+// Ported from the legacy AddBranchModal: name/email/code/website are required,
+// everything else is optional. Times are "HH:mm" strings (native time input).
+export const branchSchema = z
+  .object({
+    branch_name: z.string().trim().min(1, "Branch name is required"),
+    email: z
+      .string()
+      .trim()
+      .min(1, "Email is required")
+      .pipe(z.email("Enter a valid email")),
+    branch_code: z.string().trim().min(1, "Branch code is required"),
+    contact_number: z
+      .string()
+      .refine((val) => {
+        const digits = (val || "").replace(/\D/g, "");
+        // Empty or just a dial code (≤3 digits) counts as "not filled" → ok.
+        if (digits.length <= 3) return true;
+        // Once a number is typed it needs ≥7 digits total (incl. country code).
+        return digits.length >= 7;
+      }, "Enter a valid phone number")
+      .optional()
+      .or(z.literal("")),
+    website_link: z.url({
+      protocol: /^https?$/,
+      hostname: z.regexes.domain,
+    }),
+    timezone: z.string().optional().or(z.literal("")),
+    currency: z.string().optional().or(z.literal("")),
+    working_days: z.array(z.string()).optional().default([]),
+    start_time: z.string().optional().or(z.literal("")),
+    end_time: z.string().optional().or(z.literal("")),
+    pincode: z
+      .string()
+      .regex(/^\d{6}$/, "Pincode must be exactly 6 digits")
+      .optional()
+      .or(z.literal("")),
+    country: z.string().optional().or(z.literal("")),
+    state: z.string().optional().or(z.literal("")),
+    city: z.string().optional().or(z.literal("")),
+    street_address: z.string().optional().or(z.literal("")),
+  })
+  // Times are zero-padded "HH:mm", so a lexicographic compare is a time compare.
+  .refine((d) => !d.start_time || !d.end_time || d.end_time > d.start_time, {
+    message: "End time must be after start time",
+    path: ["end_time"],
+  });
+
+export const branchDefaults = {
+  branch_name: "",
+  email: "",
+  branch_code: "",
+  contact_number: "",
+  website_link: "",
+  timezone: "",
+  currency: "",
+  working_days: [],
+  start_time: "",
+  end_time: "",
+  pincode: "",
+  country: "",
+  state: "",
+  city: "",
+  street_address: "",
+};
+
+// Map a loaded branch record onto the branch form's shape. Logo is excluded
+// (handled as a File in the component, mirroring the organization form).
+export const mapApiToBranch = (branch = {}) => ({
+  branch_name: branch?.branch_name ?? "",
+  email: branch?.email ?? "",
+  branch_code: branch?.branch_code ?? "",
+  contact_number:
+    branch?.contact_number != null ? String(branch.contact_number) : "",
+  website_link: branch?.website_link ?? "",
+  timezone: branch?.timezone ?? "",
+  currency: branch?.currency ?? "",
+  working_days: parseWorkingDays(branch?.working_days),
+  start_time: normalizeTime(branch?.start_time),
+  end_time: normalizeTime(branch?.end_time),
+  pincode: branch?.pincode != null ? String(branch.pincode) : "",
+  country: branch?.country ?? "",
+  state: branch?.state ?? "",
+  city: branch?.city ?? "",
+  street_address: branch?.street_address ?? "",
+});
+
+

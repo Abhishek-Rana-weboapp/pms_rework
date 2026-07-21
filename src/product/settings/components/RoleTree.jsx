@@ -24,6 +24,7 @@ const RoleTreeNode = ({ node, depth, expanded, onToggle, onEdit, onDelete }) => 
   const isOpen = expanded.has(node.id);
   const userCount = getUserCount(node);
 
+
   return (
     <div>
       <div
@@ -68,7 +69,7 @@ const RoleTreeNode = ({ node, depth, expanded, onToggle, onEdit, onDelete }) => 
           </span>
         )}
 
-        <DropdownMenu>
+        {node.role_name !== "CEO" && <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               type="button"
@@ -91,7 +92,7 @@ const RoleTreeNode = ({ node, depth, expanded, onToggle, onEdit, onDelete }) => 
               <Trash2 /> Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu>}
       </div>
 
       <AnimatePresence initial={false}>

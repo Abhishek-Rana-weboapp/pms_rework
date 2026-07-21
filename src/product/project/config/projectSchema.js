@@ -4,14 +4,21 @@ export const projectSchema = z
   .object({
     project_name: z.string().min(1, "Project name is required"),
     project_type: z.coerce.number().min(1, "Project type is required"),
-    priority: z.string().min(1, "Priority is required"),
+    // Ids arrive as numbers from the API but as strings from the <Select>;
+    // coerce so the submitted payload is always a number (matches project_type).
+    priority: z.coerce.number().min(1, "Priority is required"),
     description: z
       .string()
       .min(1, "Description is required")
       .max(1500, "Description cannot exceed 1500 characters"),
     start_date: z.date().nullable(),
     end_date: z.date().nullable(),
-    manager: z.string().optional(),
+    // Optional id: turn an empty select ("") into undefined *before* coercing,
+    // otherwise Number("") === 0 would slip past .optional().
+    manager: z.preprocess(
+      (v) => (v === "" || v == null ? undefined : v),
+      z.coerce.number().optional(),
+    ),
     client: z.string().optional(),
     attachments: z.array(z.instanceof(File)).optional(),
     status: z.array(z.string()),

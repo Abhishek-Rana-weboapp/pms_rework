@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { useProjects } from "../api/queries";
-import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
-import { Grid, Plus, Table2 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider, // 1. Added missing TooltipProvider
-} from "@/shared/components/ui/tooltip";
+import { Plus } from "lucide-react";
+import { TooltipProvider } from "@/shared/components/ui/tooltip";
+import ViewToggle from "@/shared/components/ViewToggle";
 import { Button } from "@/shared/components/ui/button";
 import ProjectGridView from "../components/views/ProjectGridView";
 import ProjectTableView from "../components/views/ProjectTableView";
@@ -20,7 +15,7 @@ import { PageSizeSelect } from "@/shared/components/PageSizeSelect";
 
 const ProjectList = () => {
   const navigate = useNavigate();
-  const [dataView, setDataView] = useLocalStorage("projectView", "card");
+  const [dataView, setDataView] = useLocalStorage("projectView", "grid");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const { data = {}, isLoading } = useProjects({ page, page_size: pageSize });
@@ -98,43 +93,7 @@ const ProjectListHeader = ({ projectCount = 0, dataView, setDataView }) => {
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="w-max">
-          <Tabs value={dataView} onValueChange={setDataView}>
-            <TabsList className="bg-gray-200">
-              {/* TooltipTrigger uses asChild to become the TabsTrigger's interior layout */}
-              <TabsTrigger value="card" className="p-0">
-                <Tooltip delayDuration={600}>
-                  <TooltipTrigger asChild>
-                    <div className="p-2 w-full h-full flex items-center justify-center">
-                      <Grid className="h-4 w-4" />
-                      <span className="sr-only">Card View</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" align="center">
-                    <p>Card View</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TabsTrigger>
-
-              {/* 1. Table View Tab (TabsTrigger is now on the OUTSIDE) */}
-              <TabsTrigger value="table" className="p-0">
-                <Tooltip delayDuration={600}>
-                  <TooltipTrigger asChild>
-                    <div className="p-2 w-full h-full flex items-center justify-center">
-                      <Table2 className="h-4 w-4" />
-                      <span className="sr-only">Table View</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" align="center">
-                    <p>Table View</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TabsTrigger>
-
-              {/* 2. Card View Tab */}
-            </TabsList>
-          </Tabs>
-        </div>
+        <ViewToggle value={dataView} onValueChange={setDataView} />
 
         <Button onClick={openAdd} className="flex gap-1 items-center">
           <Plus className="h-4 w-4" /> New Project

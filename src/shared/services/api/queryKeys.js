@@ -10,6 +10,9 @@
 //   queryClient.invalidateQueries({ queryKey: queryKeys.projects.detail(id) })
 
 export const queryKeys = {
+  dashboard:{
+    all:["dashboard"]
+  },
   currentUser: {
     all: ["currentUser"],
     detail:(id)=>[...queryKeys.currentUser.all, id],
@@ -53,6 +56,20 @@ export const queryKeys = {
       projectId,
       filters ?? {},
     ],
+    details: () => [...queryKeys.artifacts.all, "detail"],
+    detail: (id) => [...queryKeys.artifacts.details(), id],
+    // Children are per-parent + per-type; `type` in the key makes each tab its
+    // own cache entry, so switching tabs fetches that tab's children.
+    children: (artifactId, type) => [
+      ...queryKeys.artifacts.all,
+      "children",
+      artifactId,
+      type,
+    ],
+  },
+
+  boards: {
+    all: (projectId) => ["boards", projectId],
   },
 
   // Settings-managed reference data (rarely changes; invalidate on settings edit).
@@ -90,5 +107,39 @@ export const queryKeys = {
   users:{
     all:["users"],
     detail:(id)=>[...queryKeys.users.all, id],
+  },
+
+  organization: {
+    all: ["organization"],
+    detail: (id) => [...queryKeys.organization.all, id],
+  },
+
+  branches:{
+    all:["branches"],
+    detail:(id)=>[...queryKeys.branches.all, id],
+  },
+
+  auditLogs: {
+    all: ["auditLogs"],
+    lists: () => [...queryKeys.auditLogs.all, "list"],
+    list: (filters) => [...queryKeys.auditLogs.lists(), filters ?? {}],
+  },
+
+
+  team:{
+    all:(projectId)=>["team", projectId]
+  },
+
+
+  reports:{
+    all:["reports"],
+  },
+
+  backlog:{
+    all:["backlog"]
+  },
+
+  sprints:{
+    all:["sprints"]
   }
 };

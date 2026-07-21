@@ -13,13 +13,22 @@ import { Badge } from "@/shared/components/ui/badge";
 import UserProfileForm from "../components/UserProfileForm";
 import Wrapper from "@/shared/components/wrappers/Wrapper";
 import { Spinner } from "@/shared/components/ui/spinner";
+import { toast } from "sonner";
 
 const ProfileOverview = () => {
   const { userId } = useAuth();
   const { data: user, isLoading } = useCurrentUser(userId);
 
   const [preview, setPreview] = useState(null);
-  const { mutate } = useUploadImage();
+  const { mutate } = useUploadImage(userId, {
+    onError: (error) => {
+      const fieldErrors = error?.response?.data?.errors;
+      const message = fieldErrors
+        ? Object.values(fieldErrors).flat().join(" ")
+        : "Failed to upload image.";
+      toast.error(message);
+    },
+  });
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];

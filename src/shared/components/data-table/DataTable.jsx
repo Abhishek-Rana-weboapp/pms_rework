@@ -99,6 +99,8 @@ export default function DataTable({
   onSearchChange,
   sorting: sortingProp,
   onSortingChange,
+  columnVisibility: columnVisibilityProp,
+  onColumnVisibilityChange,
 }) {
   // TanStack's `table` is a mutable object with a stable identity. The React
   // Compiler (enabled in vite.config.js) would memoise reads off it and freeze
@@ -107,7 +109,7 @@ export default function DataTable({
   "use no memo";
   const [sortingState, setSortingState] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnVisibility, setColumnVisibility] = React.useState({});
+  const [columnVisibilityState, setColumnVisibilityState] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilterState, setGlobalFilterState] = React.useState("");
   const [paginationState, setPaginationState] = React.useState({
@@ -123,6 +125,9 @@ export default function DataTable({
   const setGlobalFilter = onSearchChange ?? setGlobalFilterState;
   const pagination = paginationProp ?? paginationState;
   const setPagination = onPaginationChange ?? setPaginationState;
+  const columnVisibility = columnVisibilityProp ?? columnVisibilityState;
+  const setColumnVisibility =
+    onColumnVisibilityChange ?? setColumnVisibilityState;
 
   const resolvedPageCount = manualPagination
     ? pageCount ??

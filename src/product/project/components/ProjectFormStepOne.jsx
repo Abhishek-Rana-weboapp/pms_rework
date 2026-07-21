@@ -14,12 +14,14 @@ import {
 } from "@/shared/components/ui/select";
 import { DatePicker } from "@/shared/components/ui/date-picker";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
-import { Textarea } from "@/shared/components/ui/textarea";
 import { Dropzone } from "@/shared/components/ui/dropzone";
+import Tiptap from "@/shared/components/tiptap/Tiptap";
 import {
   usePriorities,
   useProjectTypes,
 } from "@/product/settings/api/settingsQueries";
+import { useClients, useEmployees } from "@/product/dashboard/api/queries";
+import { createFullName } from "@/shared/lib/helpers";
 
 const ProjectFormStepOne = () => {
   const { data: priorities = [] } = usePriorities();
@@ -31,6 +33,12 @@ const ProjectFormStepOne = () => {
   } = useFormContext();
 
   const { data: projectTypeData } = useProjectTypes();
+  // These drive selection dropdowns, so pull the full list (one large page)
+  // rather than the default first page.
+  const { data: employeesData } = useEmployees({ pageSize: 1000 });
+  const { data: clientsData } = useClients({ pageSize: 1000 });
+  const employees = employeesData?.results ?? [];
+  const clients = clientsData?.results ?? [];
   const startDate = useWatch({ control, name: "start_date" });
 
 
@@ -64,8 +72,8 @@ const ProjectFormStepOne = () => {
               <SelectTrigger id="project_type" className="w-full">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
-              <SelectContent>
-                {projectTypeData?.results?.map((type) => {
+              <SelectContent position="popper">
+                {projectTypeData?.map((type) => {
                   return (
                     <SelectItem key={type.id} value={String(type.id)}>
                       {type.project_type}
@@ -135,9 +143,12 @@ const ProjectFormStepOne = () => {
               <SelectTrigger id="manager" className="w-full">
                 <SelectValue placeholder="Select manager" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="internal">Internal</SelectItem>
-                <SelectItem value="client">Client</SelectItem>
+              <SelectContent position="popper">
+                {
+                  employees.map((emp)=>{
+                    return <SelectItem value={String(emp.id)} key={emp.id}>{createFullName(emp)}</SelectItem>
+                  })
+                }
               </SelectContent>
             </Select>
           )}
@@ -160,7 +171,7 @@ const ProjectFormStepOne = () => {
               <SelectTrigger id="priority" className="w-full">
                 <SelectValue placeholder="Select priority" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 {priorities?.map((priority) => (
                   <SelectItem key={priority.id} value={String(priority.id)}>
                     {priority.priority}
@@ -186,9 +197,10 @@ const ProjectFormStepOne = () => {
               <SelectTrigger id="client" className="w-full">
                 <SelectValue placeholder="Select client" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="internal">Internal</SelectItem>
-                <SelectItem value="client">Client</SelectItem>
+              <SelectContent position="popper">
+                {clients.map((client)=>{
+                  return <SelectItem value={String(client.id)} key={client.id}>{createFullName(client)}</SelectItem>
+                })}
               </SelectContent>
             </Select>
           )}
@@ -203,10 +215,16 @@ const ProjectFormStepOne = () => {
         <FieldLabel htmlFor="description">
           Description<span className="text-destructive">*</span>
         </FieldLabel>
-        <Textarea
-          rows={4}
-          className={"field-sizing-fixed scrollbar-thin"}
-          {...register("description")}
+        <Controller
+          name="description"
+          control={control}
+          render={({ field }) => (
+            <Tiptap
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+            />
+          )}
         />
         {errors.description && (
           <FieldError>{errors.description.message}</FieldError>

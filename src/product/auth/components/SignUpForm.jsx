@@ -77,7 +77,7 @@ const SignUpForm = () => {
                   <SelectValue placeholder="Company Size" />
                 </SelectTrigger>
 
-                <SelectContent>
+                <SelectContent position="popper">
                   <SelectGroup>
                     <SelectItem value="0-10">0-10</SelectItem>
                     <SelectItem value="10-20">10-20</SelectItem>

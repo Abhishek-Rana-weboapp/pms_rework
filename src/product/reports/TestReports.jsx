@@ -9,7 +9,7 @@ const TestReports = () => {
              <SelectTrigger className="w-full max-w-48">
         <SelectValue placeholder="selet" />
       </SelectTrigger>
-        <SelectContent>
+        <SelectContent position="popper">
         <SelectGroup>
             <SelectItem value="YES">Yes</SelectItem>
             <SelectItem value="YES">Yes</SelectItem>

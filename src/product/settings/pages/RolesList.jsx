@@ -13,6 +13,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/components/ui/alert-dialog";
+import { Spinner } from "@/shared/components/ui/spinner";
+import { useDeleteRole } from "../api/settingsMutations";
 import { useNavigate } from "react-router-dom";
 
 // Flatten the role tree into { value, label } options for the "Reports To" select.
@@ -33,7 +45,13 @@ const RolesList = () => {
   const [formOpen, setFormOpen] = useState(false);
   // The role being edited; null means the dialog is in "create" mode.
   const [editingRole, setEditingRole] = useState(null);
+  // The role pending delete confirmation; null closes the confirm dialog.
+  const [deletingRole, setDeletingRole] = useState(null);
   const { data: list } = useRolesTree();
+
+  const deleteRoleMutation = useDeleteRole({
+    onSuccess: () => setDeletingRole(null),
+  });
 
   const roles = React.useMemo(() => list ?? [], [list]);
   const allIds = React.useMemo(() => collectRoleIds(roles), [roles]);
@@ -64,6 +82,10 @@ const RolesList = () => {
   const openEdit = (role) => {
     setEditingRole(role);
     setFormOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (deletingRole) deleteRoleMutation.mutate(deletingRole.id);
   };
 
   const isEdit = Boolean(editingRole);
@@ -109,6 +131,7 @@ const RolesList = () => {
               expanded={expanded}
               onToggle={toggle}
               onEdit={openEdit}
+              onDelete={setDeletingRole}
             />
           ) : (
             <p className="text-sm text-gray-500 py-6 text-center">No roles</p>
@@ -134,10 +157,46 @@ const RolesList = () => {
             reportOptions={reportOptions}
             onCancel={() => setFormOpen(false)}
             onSuccess={() => setFormOpen(false)}
-            onError={() => setFormOpen(false)}
           />
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={Boolean(deletingRole)}
+        onOpenChange={(open) => !open && setDeletingRole(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Role</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-medium text-foreground">
+                {deletingRole?.role_name}
+              </span>
+              ? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteRoleMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={deleteRoleMutation.isPending}
+              // Keep the dialog open while the request is in flight; it closes on
+              // success via the controlled `deletingRole` state.
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }}
+            >
+              {deleteRoleMutation.isPending && <Spinner />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

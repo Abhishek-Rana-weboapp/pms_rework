@@ -34,7 +34,7 @@ export function PageSizeSelect({
         <SelectTrigger size="sm" className="w-18">
           <SelectValue placeholder={pageSize} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent position="popper">
           {options.map((size) => (
             <SelectItem key={size} value={`${size}`}>
               {size}

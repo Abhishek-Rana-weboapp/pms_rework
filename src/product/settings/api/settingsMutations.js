@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createGlobalStatus, createPriority, createProjectType, inviteUser, updateGlobalStatus, updatePriority, updateProjectType, updateUser, updateUserProfile, uploadProfileImage } from "./settingsEndpoints";
+import { createBranch, createGlobalStatus, createPriority, createProjectType, createRole, deleteRole, inviteUser, updateBranch, updateGlobalStatus, updateOrganizationSettings, updatePriority, updateProjectType, updateRole, updateUser, updateUserProfile, uploadProfileImage } from "./settingsEndpoints";
 import { queryKeys } from "@/shared/services/api/queryKeys";
 import { hasFieldErrors } from "@/shared/lib/formErrors";
 
@@ -11,7 +11,15 @@ import { hasFieldErrors } from "@/shared/lib/formErrors";
 // delegating to options.onError.
 const toastServerError = (error, fallback = "Something went wrong.") => {
   if (!hasFieldErrors(error)) {
-    toast.error(error?.response?.data?.errors || fallback);
+    const data = error?.response?.data;
+    // Backend non-field failures (e.g. a 403 { message, errors: null }) carry the
+    // human-readable text in `message`. Prefer it; fall back to a string `errors`
+    // payload, then the caller's generic message.
+    const message =
+      data?.message ||
+      (typeof data?.errors === "string" ? data.errors : null) ||
+      fallback;
+    toast.error(message);
   }
 };
 
@@ -37,16 +45,25 @@ const useAppMutation = ({ invalidateKeys = [], errorMessage, ...options } = {}) 
   });
 };
 
-export const useUploadImage = (options = {}) => {
-  const user_id = localStorage.getItem("user_id");
+export const useUploadImage = (userId,options = {}) => {
 
   return useAppMutation({
     mutationFn: uploadProfileImage,
-    invalidateKeys: [queryKeys.currentUser.detail(user_id)],
+    invalidateKeys: [queryKeys.currentUser.detail(userId)],
     errorMessage: "Failed to upload image.",
     ...options,
   });
 };
+
+// Org details + schedule both PUT the same organizationsettings record, so they
+// share this mutation. Pass the org id once; callers mutate({ orgId, formData }).
+export const useUpdateOrganizationSettings = (orgId, options = {}) =>
+  useAppMutation({
+    mutationFn: updateOrganizationSettings,
+    invalidateKeys: [queryKeys.organization.detail(orgId)],
+    errorMessage: "Failed to update organization settings.",
+    ...options,
+  });
 
 export const useUpdateProfile = (options = {}) => {
   const user_id = localStorage.getItem("user_id");
@@ -124,4 +141,49 @@ export const useUpdatePriority = (options={}) =>
       errorMessage:"Failed to update status",
       ...options
     })
-  
+
+
+export const useCreateBranch = (options = {}) =>
+  useAppMutation({
+    mutationFn: createBranch,
+    invalidateKeys: [queryKeys.branches.all],
+    errorMessage: "Failed to add branch.",
+    ...options,
+  });
+
+export const useUpdateBranch = (options = {}) =>
+  useAppMutation({
+    mutationFn: updateBranch,
+    invalidateKeys: [queryKeys.branches.all],
+    errorMessage: "Failed to update branch.",
+    ...options,
+  });
+
+
+  export const useCreateRole = (options = {}) =>{
+    return useAppMutation({
+       mutationFn:createRole,
+       invalidateKeys:[queryKeys.roles.all],
+       errorMessage:"Failed to create Role",
+       ...options
+    })
+  }
+
+  export const useUpdateRole = (options = {}) =>{
+    return useAppMutation({
+       mutationFn:updateRole,
+       invalidateKeys:[queryKeys.roles.all],
+       errorMessage:"Failed to update Role",
+       ...options
+    })
+  }
+
+  export const useDeleteRole = (options = {}) =>{
+    return useAppMutation({
+       mutationFn:deleteRole,
+       invalidateKeys:[queryKeys.roles.all],
+       errorMessage:"Failed to delete Role",
+       ...options
+    })
+  }
+

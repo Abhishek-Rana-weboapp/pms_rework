@@ -134,3 +134,71 @@ export const updateUser = async ({ id, formData }) => {
   });
   return res.data;
 };
+
+// ── Organization / company settings ──────────────────────────────────────────
+// NOTE: `orgId` is the org's UUID (route param `orgUuid` / user.organization_uuid);
+// the legacy app used a numeric organization_id. Confirm the backend keys off the
+// UUID here — this is the single spot to change if it expects a different id.
+export const getOrganizationSettings = async (orgId) => {
+  const res = await api.get(`organizationsettings/${orgId}/`);
+  return res?.data?.data ?? res?.data;
+};
+
+// Multipart so the logo file can ride along with the text fields.
+export const updateOrganizationSettings = async ({ orgId, formData }) => {
+  const res = await api.put(`organizationsettings/${orgId}/`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res?.data?.data ?? res?.data;
+};
+
+
+export const getAllbranches = async()=>{
+  const res = await api.get(`branch/`)
+  return res?.data.data ?? res?.data;
+}
+
+// Single branch for the detail page.
+export const getBranch = async (id) => {
+  const res = await api.get(`branch/${id}/`);
+  return res?.data?.data ?? res?.data;
+};
+
+// Multipart so the branch logo file can ride along with the text fields.
+export const createBranch = async (formData) => {
+  const res = await api.post(`branch/`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res?.data?.data ?? res?.data;
+};
+
+export const updateBranch = async ({ id, formData }) => {
+  const res = await api.put(`branch/${id}/`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res?.data?.data ?? res?.data;
+};
+
+// ── Audit logs ────────────────────────────────────────────────────────────────
+// Paginated activity feed. `params` carries the active filters (page, date range,
+// user, module, search). Returns the raw DRF page: { results, next, count }.
+export const getAuditLogs = async (params) => {
+  const res = await api.get(`auth/audit-logs/`, { params });
+  return res?.data;
+};
+
+
+export const createRole = async(payload) =>{
+  const res = await api.post(`role/`, payload);
+  return res?.data;
+}
+
+export const updateRole = async({ id, payload }) =>{
+  const res = await api.put(`role/${id}/`, payload);
+  return res?.data;
+}
+
+export const deleteRole = async(id) =>{
+  const res = await api.delete(`role/${id}/`);
+  return res?.data;
+}

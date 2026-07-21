@@ -108,7 +108,7 @@ const StatusForm = ({ selectedItem = null, onSuccess, onCancel }) => {
               >
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectGroup>
                   <SelectLabel>Category</SelectLabel>
                   {categories.map((cat) => (

@@ -154,6 +154,11 @@ const Dropzone = React.forwardRef(function Dropzone(
           ref={inputRef}
           id={id}
           type="file"
+          // Not a tab stop: the wrapper div is the keyboard interface
+          // (Enter/Space opens the picker). Left focusable, this clipped 1px
+          // input becomes a duplicate tab stop — and focusing it makes any
+          // scrollable ancestor (e.g. a dialog body) jump to a bogus offset.
+          tabIndex={-1}
           className="sr-only"
           accept={accept}
           multiple={multiple}

@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
 
 // Colors for the invite-status badge. Adjust the keys to match the exact
 // values your API returns for `invite_status`.
@@ -38,9 +39,10 @@ export const getUsersTableColumns = ({ onEdit, onDelete } = {}) => [
       const name = createFullName(row.original) || "-";
       return (
         <div className="flex items-center gap-3 py-1">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-sm font-medium text-muted-foreground">
-            {createInitials(row.original) || "?"}
-          </div>
+          <Avatar className="size-9">
+            <AvatarImage src={row.original.user_image} />
+            <AvatarFallback>{createInitials(row.original) || "?"}</AvatarFallback>
+          </Avatar>
           <div className="min-w-0">
             <div className="truncate font-medium text-foreground">{name}</div>
             <div className="truncate text-sm text-muted-foreground">

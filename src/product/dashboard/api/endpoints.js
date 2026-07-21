@@ -10,25 +10,49 @@ export const getProjects = async ({ page, page_size, search } = {}) => {
 }
 
 
+// Server-paginated employee list. Returns the full envelope
+// `{ pagination, results }` so callers can drive page controls.
 export const getAllEmployees = async ({
- searchData,
- filterStatus,
+ page,
+ page_size,
+ search,
+ status,
 } = {}) => {
- let params = {};
- if (searchData) params.search = searchData;
- if (filterStatus !== undefined && filterStatus !== null) params.status = filterStatus;
+ const params = {};
+ if (page !== undefined) params.page = page;
+ if (page_size !== undefined) params.page_size = page_size;
+ if (search) params.search = search;
+ if (status !== undefined) params.status = status; // "true" | "false"
  const res = await api.get("employees/", { params });
- return  res.data.data.results
+ return res?.data?.data;
 };
 
 
+// Server-paginated client list. Returns the full envelope
+// `{ pagination, results }` so callers can drive page controls.
 export const getAllClients = async ({
- searchData,
- filterStatus,
+ page,
+ page_size,
+ search,
+ status,
 } = {}) => {
- let params = {};
- if (searchData) params.search = searchData;
- if (filterStatus !== undefined && filterStatus !== null) params.status = filterStatus;
+ const params = {};
+ if (page !== undefined) params.page = page;
+ if (page_size !== undefined) params.page_size = page_size;
+ if (search) params.search = search;
+ if (status !== undefined) params.status = status; // "true" | "false"
  const res = await api.get("clients/", { params });
- return  res.data.data.results
+ return res?.data?.data;
 };
+
+
+export const getDashboard = async()=>{
+    const res = await api.get(`dashboard/`)
+    return res.data.data;
+}
+
+
+export const getReports = async()=>{
+    const res = await api.get(`reports/home/`)
+    return res.data.data
+}
