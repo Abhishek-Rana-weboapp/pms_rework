@@ -1,6 +1,7 @@
 import { useCurrentProject } from "@/product/project/api/project/projectQueries";
 import ProjectTabs from "@/product/project/components/ProjectTabs";
 import { ArtifactFormDialogProvider } from "@/product/project/context/ArtifactFormDialogContext";
+import { SprintFormDialogProvider } from "@/product/project/context/SprintFormDialogContext";
 import { useProjectFormDialog } from "@/product/project/context/projectFormDialogStore";
 import { Badge } from "@/shared/components/ui/badge";
 import {
@@ -13,11 +14,12 @@ import { Progress } from "@/shared/components/ui/progress";
 import { Spinner } from "@/shared/components/ui/spinner";
 import { ArrowLeft, MoreHorizontalIcon, Pencil } from "lucide-react";
 import { Suspense } from "react";
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 
 const ProjectLayout = () => {
   const { orgUuid } = useParams();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const {
     data: projectData,
     isLoading: projectLoading,
@@ -78,7 +80,7 @@ const ProjectLayout = () => {
                   className={"flex items-center text-gray-600 cursor-pointer"}
                 >
                   <Pencil />
-                  Edit details
+                  Edit Project
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -87,11 +89,20 @@ const ProjectLayout = () => {
         <ProjectTabs />
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50 p-3">
-        <ArtifactFormDialogProvider>
-          <Suspense fallback={<Spinner />}>
-            <Outlet />
-          </Suspense>
-        </ArtifactFormDialogProvider>
+        <SprintFormDialogProvider>
+          <ArtifactFormDialogProvider>
+            <Suspense
+              // key={pathname}
+              fallback={
+                <div className="flex justify-center items-center">
+                  <Spinner />
+                </div>
+              }
+            >
+              <Outlet />
+            </Suspense>
+          </ArtifactFormDialogProvider>
+        </SprintFormDialogProvider>
       </div>
     </div>
   );

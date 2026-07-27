@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useParams } from "react-router-dom"
 import { toast } from "sonner"
 import { queryKeys } from "@/shared/services/api/queryKeys"
-import { createProject, moveArtifact, updateProject } from "./projectEndpoints"
+import { createProject, createProjectStatus, moveArtifact, updateProject, updateProjectStatus } from "./projectEndpoints"
 
 export const useCreateProject = (options = {}) => {
     const queryClient = useQueryClient();
@@ -89,5 +89,69 @@ export const useMoveArtifact = (options = {}) => {
         },
         onSettled: () =>
             queryClient.invalidateQueries({ queryKey: boardsKey }),
+    });
+};
+
+// Create a project-scoped status (new board column). Invalidates board +
+// projectStatuses so the new column appears without a manual refresh.
+export const useCreateProjectStatus = (options = {}) => {
+    const queryClient = useQueryClient();
+    const { projectId } = useParams();
+
+    return useMutation({
+        mutationFn: (data) => createProjectStatus({ projectId, ...data }),
+        ...options,
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.boards.all(projectId),
+            });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.projectStatus.all(projectId),
+            });
+            options.onSuccess?.(...args);
+        },
+        onError: (error, ...rest) => {
+            if (!options.onError) {
+                const errors = error?.response?.data?.errors;
+                const message =
+                    (Array.isArray(errors) && errors[0]) ||
+                    error?.response?.data?.message ||
+                    "Failed to create status.";
+                toast.error(message);
+            }
+            options.onError?.(error, ...rest);
+        },
+    });
+};
+
+// Update a project-scoped status. Invalidates board + projectStatuses.
+export const useUpdateProjectStatus = (options = {}) => {
+    const queryClient = useQueryClient();
+    const { projectId } = useParams();
+
+    return useMutation({
+        mutationFn: ({ id, ...data }) =>
+            updateProjectStatus({ id, projectId, ...data }),
+        ...options,
+        onSuccess: (...args) => {
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.boards.all(projectId),
+            });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.projectStatus.all(projectId),
+            });
+            options.onSuccess?.(...args);
+        },
+        onError: (error, ...rest) => {
+            if (!options.onError) {
+                const errors = error?.response?.data?.errors;
+                const message =
+                    (Array.isArray(errors) && errors[0]) ||
+                    error?.response?.data?.message ||
+                    "Failed to update status.";
+                toast.error(message);
+            }
+            options.onError?.(error, ...rest);
+        },
     });
 };

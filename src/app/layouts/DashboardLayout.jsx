@@ -26,7 +26,7 @@ const DashboardLayout = () => {
             <DashboardHeader />
             <div className="flex-1 min-w-0 min-h-0 overflow-y-auto bg-slate-50">
               <ProjectFormDialogProvider>
-                <Suspense key={sectionKey} fallback={<PageFallback />}>
+                <Suspense fallback={<PageFallback />}>
                   <Outlet />
                 </Suspense>
               </ProjectFormDialogProvider>

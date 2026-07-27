@@ -46,6 +46,15 @@ export const queryKeys = {
     all: ["reports"],
     lists: () => [...queryKeys.reports.all, "list"],
     list: (filters) => [...queryKeys.reports.lists(), filters ?? {}],
+    details: () => [...queryKeys.reports.all, "detail"],
+    detail: (id) => [...queryKeys.reports.details(), id],
+    primaryModule: () => [...queryKeys.reports.all, "primary-module"],
+    associatedModule: (mainModule) => [
+      ...queryKeys.reports.all,
+      "associate-module",
+      mainModule,
+    ],
+    configuration: () => [...queryKeys.reports.all, "configuration"],
   },
 
   artifacts: {
@@ -130,10 +139,6 @@ export const queryKeys = {
     all:(projectId)=>["team", projectId]
   },
 
-
-  reports:{
-    all:["reports"],
-  },
 
   backlog:{
     all:["backlog"]

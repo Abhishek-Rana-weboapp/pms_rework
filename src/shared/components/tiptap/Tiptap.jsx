@@ -31,7 +31,14 @@ const EXTENSIONS = [StarterKit, ExtraShortcuts];
  * what lets a plain `z.string().min(1)` treat a blank editor as empty/required.
  * Output should be sanitized before it's persisted/rendered (see sanitizeHtml).
  */
-const Tiptap = ({ value, onChange, onBlur, disabled = false, className }) => {
+const Tiptap = ({
+  value,
+  onChange,
+  onBlur,
+  disabled = false,
+  className,
+  editorClassName,
+}) => {
   const editor = useEditor({
     extensions: EXTENSIONS,
     content: value ?? "", // initial content only; external changes handled below
@@ -58,7 +65,8 @@ const Tiptap = ({ value, onChange, onBlur, disabled = false, className }) => {
         // this. RICH_TEXT_CLASS (shared with the RichText viewer) restores the
         // element styling; the leading classes are editor-surface only.
         class: cn(
-          "min-h-48 px-3 py-2 text-sm outline-none scrollbar-thin",
+          "px-3 py-2 text-sm outline-none scrollbar-thin",
+          editorClassName ?? "min-h-48",
           RICH_TEXT_CLASS,
         ),
       },

@@ -2,7 +2,9 @@ import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, GripVertical } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { DragDropProvider, DragOverlay, useDroppable } from "@dnd-kit/react";
-import { useSortable, isSortable } from "@dnd-kit/react/sortable";
+import { useSortable } from "@dnd-kit/react/sortable";
+
+import { moveCard } from "@/shared/lib/dnd/moveCard";
 
 import { Badge } from "@/shared/components/ui/badge";
 import {
@@ -38,6 +40,7 @@ const RAIL_WIDTH = 48; // matches w-12
  * @param {(card, column) => React.ReactNode} [renderCard] Custom card body. Defaults to the card title.
  * @param {(column) => React.ReactNode} [renderColumnHeader] Custom column header. Defaults to title + count.
  * @param {boolean} [collapsible=true] Whether columns can be collapsed into a rail.
+ * @param {React.ReactNode} [trailing] Optional node rendered after all columns (e.g. "Add column").
  */
 const Kanban = ({
   columns: columnsProp = [],
@@ -46,6 +49,7 @@ const Kanban = ({
   renderCard,
   renderColumnHeader,
   collapsible = true,
+  trailing,
   className,
 }) => {
   const [columns, setColumns] = useState(columnsProp);
@@ -155,6 +159,7 @@ const Kanban = ({
             onToggleCollapse={() => toggleCollapse(column.id)}
           />
         ))}
+        {trailing}
       </div>
 
       {/* Full-fidelity clone that follows the pointer, so the in-list original
@@ -356,49 +361,5 @@ const CardBody = ({ card, column, renderCard }) => (
     </div>
   </>
 );
-
-/**
- * Returns a new `columns` array with the dragged card moved to its target slot.
- * Handles both in-column reordering and cross-column moves, and is a no-op when
- * the card would land in the slot it already occupies. Pure — safe to call from
- * a state updater on every `dragover`.
- */
-function moveCard(columns, event) {
-  const { source, target } = event.operation;
-  if (!source || !target) return columns;
-
-  const fromColumnId = source.data?.columnId;
-  // The target is either another card (a sortable, carries `columnId`) or a
-  // column droppable — its empty surface / rail (also carries `columnId`).
-  const toColumnId = target.data?.columnId;
-  if (fromColumnId == null || toColumnId == null) return columns;
-
-  const fromIdx = columns.findIndex((c) => c.id === fromColumnId);
-  const toIdx = columns.findIndex((c) => c.id === toColumnId);
-  if (fromIdx === -1 || toIdx === -1) return columns;
-
-  const cardIdx = columns[fromIdx].cards.findIndex((c) => c.id === source.id);
-  if (cardIdx === -1) return columns;
-
-  // Landing index: the target card's slot, or the end of the column when the
-  // drop is on the column droppable (empty space / rail) rather than on a card.
-  const targetIndex = isSortable(target)
-    ? target.sortable.index
-    : columns[toIdx].cards.length;
-
-  if (fromColumnId === toColumnId && cardIdx === targetIndex) return columns;
-
-  const next = columns.map((c) => ({ ...c, cards: [...c.cards] }));
-  const [card] = next[fromIdx].cards.splice(cardIdx, 1);
-
-  // Removing an earlier item in the same column shifts every later slot left.
-  const insertAt =
-    fromColumnId === toColumnId && cardIdx < targetIndex
-      ? targetIndex - 1
-      : targetIndex;
-
-  next[toIdx].cards.splice(insertAt, 0, card);
-  return next;
-}
 
 export default Kanban;

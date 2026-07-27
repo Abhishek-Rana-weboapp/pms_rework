@@ -9,10 +9,17 @@ const ProjectTabs = () => {
 
   // Every `to` in projectTabsData is relative to the project root, so derive the
   // active tab by stripping that base off the current path. Overview is "".
+  // Detail routes (e.g. artifact/epic/:id) should still highlight the parent tab.
   const base = `/${orgUuid}/projects/${projectId}`;
-  const currentTab = pathname.startsWith(base)
+  const relative = pathname.startsWith(base)
     ? pathname.slice(base.length).replace(/^\/+/, "")
     : "";
+  const currentTab =
+    projectTabsData.find((tab) =>
+      tab.to === ""
+        ? relative === ""
+        : relative === tab.to || relative.startsWith(`${tab.to}/`),
+    )?.to ?? relative;
 
   return (
     <div className="w-full overflow-x-auto overflow-y-hidden no-scrollbar">
@@ -22,7 +29,12 @@ const ProjectTabs = () => {
       >
         <TabsList variant="line" className="w-max">
           {projectTabsData.map((tab) => (
-            <TabsTrigger className={"cursor-pointer"} key={tab.to} value={tab.to}>
+            <TabsTrigger
+              onMouseEnter={tab.prefetch}
+              className={"cursor-pointer capitalize"}
+              key={tab.to}
+              value={tab.to}
+            >
               {tab.title}
             </TabsTrigger>
           ))}

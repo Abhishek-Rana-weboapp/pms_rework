@@ -51,6 +51,35 @@ export const getProjectStatuses = async (projectId) => {
     return res.data?.data?.results;
 }
 
+// Create a project-scoped status (board column).
+// Legacy shape: POST project-status/ with { ...fields, project, category }.
+export const createProjectStatus = async ({ projectId, ...data }) => {
+    const res = await api.post(`project-status/`, {
+        ...data,
+        project: projectId,
+        category:
+            typeof data.category === "object"
+                ? data.category?.value
+                : data.category,
+    });
+    return res.data?.data;
+};
+
+// Update an existing project-scoped status.
+// Legacy shape: PUT project-status/:id/ with { ...fields, project, category }.
+export const updateProjectStatus = async ({ id, projectId, ...data }) => {
+    const res = await api.put(`project-status/${id}/`, {
+        ...data,
+        id,
+        project: projectId,
+        category:
+            typeof data.category === "object"
+                ? data.category?.value
+                : data.category,
+    });
+    return res.data?.data;
+};
+
 
 
 // Board = the active sprint's columns (statuses) + their artifacts (items),

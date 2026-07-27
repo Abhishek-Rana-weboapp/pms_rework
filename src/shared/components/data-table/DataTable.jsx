@@ -101,6 +101,7 @@ export default function DataTable({
   onSortingChange,
   columnVisibility: columnVisibilityProp,
   onColumnVisibilityChange,
+  columnOrder
 }) {
   // TanStack's `table` is a mutable object with a stable identity. The React
   // Compiler (enabled in vite.config.js) would memoise reads off it and freeze
@@ -144,6 +145,7 @@ export default function DataTable({
       rowSelection,
       globalFilter,
       pagination,
+      columnOrder
     },
     enableRowSelection: true,
     manualPagination,

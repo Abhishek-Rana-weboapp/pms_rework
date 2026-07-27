@@ -80,7 +80,7 @@ const EmployeeList = () => {
   const isEmpty = !isLoading && !isError && employees.length === 0;
 
   return (
-    <Wrapper className="space-y-5">
+    <div className="space-y-5 md:p-4 p-2">
       {/* Header */}
       <SectionWrapper>
         <h1 className="text-lg font-semibold">Employees</h1>
@@ -183,7 +183,7 @@ const EmployeeList = () => {
           </div>
         </div>
       )}
-    </Wrapper>
+    </div>
   );
 };
 

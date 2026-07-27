@@ -20,7 +20,7 @@ const ArtifactDetailsHeading = ({ artifact }) => {
 
 
   return (
-    <SectionWrapper className={"col-span-3"}>
+    <SectionWrapper>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-start gap-1">
           <button className="py-1 cursor-pointer hover:text-primary" onClick={() => navigate(-1)}>
@@ -43,7 +43,7 @@ const ArtifactDetailsHeading = ({ artifact }) => {
         </div>
         <Button onClick={() => openEdit(artifact)}>
           <Edit />
-          Update
+          Edit
         </Button>
       </div>
 

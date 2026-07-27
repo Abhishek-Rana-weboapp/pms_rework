@@ -36,7 +36,7 @@ const Dashboard = () => {
   return (
     <div className="p-4 space-y-5">
       {/* Summary Cards Section */}
-      <div className="grid lg:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-4">
+      <div className="grid lg:grid-cols-4 grid-cols-2 gap-4">
         {dashboardData &&
           Object.keys(dashboardData?.top_cards)?.map((key) => {
             return (

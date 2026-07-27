@@ -1,6 +1,6 @@
 import { queryKeys } from "@/shared/services/api/queryKeys"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import { getAllClients, getAllEmployees, getDashboard, getProjects, getReports } from "./endpoints"
+import { getAllClients, getAllEmployees, getAssociatedModule, getDashboard, getPrimaryModules, getProjects, getReports, getSavedReport } from "./endpoints"
 
 
 /**
@@ -85,3 +85,32 @@ export const useReports = ()=>{
         queryFn:getReports
     })
 }
+
+
+export const usePrimaryModules = (options = {}) => {
+  return useQuery({
+    queryKey: queryKeys.reports.primaryModule(),
+    queryFn: getPrimaryModules,
+    ...options,
+  });
+};
+
+export const useAssociatedModules = (mainModule, options = {}) => {
+  const { enabled = true, ...rest } = options;
+
+  return useQuery({
+    queryKey: queryKeys.reports.associatedModule(mainModule),
+    queryFn: () => getAssociatedModule(mainModule),
+    enabled: !!mainModule && enabled,
+    ...rest,
+  });
+};
+
+export const useSavedReport = (reportId, options = {}) => {
+  return useQuery({
+    queryKey: queryKeys.reports.detail(reportId),
+    queryFn: () => getSavedReport(reportId),
+    enabled: !!reportId,
+    ...options,
+  });
+};

@@ -7,7 +7,7 @@ import { protectedRoutes } from "./protected.routes";
 import { Toaster } from "@/shared/components/ui/sonner";
 import { notFound } from "./notfound.routes";
 import { Suspense } from "react";
-import { Spinner } from "@/shared/components/ui/spinner";
+import PageLoader from "@/shared/components/layout/PageLoader";
 
 // AuthProvider lives inside the router so it can use navigation hooks. It's wrapped
 // by QueryProvider (App.jsx), so the query client is available to it.
@@ -24,7 +24,7 @@ const RootLayout = () => (
         },
       }}
     />
-    <Suspense fallback={<Spinner />}>
+    <Suspense fallback={<PageLoader />}>
       <Outlet />
     </Suspense>
   </AuthProvider>

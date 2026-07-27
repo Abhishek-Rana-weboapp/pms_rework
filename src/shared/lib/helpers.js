@@ -74,3 +74,20 @@ export const groupLogsByDate = (logs) =>
     (groups[key] ??= []).push(log);
     return groups;
   }, {});
+
+
+
+export const getDescendantIds = (artifact) => {
+    const ids = [];
+  
+    const collect = (item) => {
+      for (const child of item.tasks ?? []) {
+        ids.push(String(child.id));
+        collect(child);
+      }
+    };
+  
+    collect(artifact);
+  
+    return ids;
+  };

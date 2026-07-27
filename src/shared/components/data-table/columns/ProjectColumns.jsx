@@ -42,7 +42,7 @@ export const getProjectColumns = ({
 
   {
     accessorKey: "project_type",
-    meta: { label: "Type" },
+    meta: { label: "Project Type" },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Type" />
     ),
@@ -156,3 +156,21 @@ function formatDate(value) {
     year: "numeric",
   });
 }
+
+
+export const projectTableColumnsOrder = [
+  "id",
+  "project_name",
+  "priority",
+  "manager_details",
+  "client_details",
+  "project_status",
+]
+
+
+/** Columns hidden by default; users can still toggle them via View options. */
+export const projectColumnVisibility = {
+  project_type: false,
+  end_date: false,
+  project_progress: false,
+};

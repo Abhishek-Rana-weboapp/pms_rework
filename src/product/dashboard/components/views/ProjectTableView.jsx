@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import DataTable from "@/shared/components/data-table/DataTable";
-import { getProjectColumns } from "@/shared/components/data-table/columns/ProjectColumns";
+import { getProjectColumns, projectColumnVisibility, projectTableColumnsOrder } from "@/shared/components/data-table/columns/ProjectColumns";
 import {
   Avatar,
   AvatarFallback,
@@ -23,6 +23,10 @@ const UserAvatar = ({ user, small }) => (
 );
 
 const ProjectTableView = ({ projects = [], isLoading = false, onRowClick }) => {
+  const [columnVisibility, setColumnVisibility] = useState(
+    projectColumnVisibility
+  );
+
   const columns = useMemo(
     () =>
       getProjectColumns({
@@ -47,6 +51,9 @@ const ProjectTableView = ({ projects = [], isLoading = false, onRowClick }) => {
       // The list is paginated server-side by <ProjectList>, so the table should
       // render the current page as-is rather than paginate it again client-side.
       enablePagination={false}
+      columnOrder={projectTableColumnsOrder}
+      columnVisibility={columnVisibility}
+      onColumnVisibilityChange={setColumnVisibility}
     />
   );
 };

@@ -11,6 +11,5 @@ export const useNotificationsQuery = () =>
     queryKey: queryKeys.notifications.list(),
     queryFn: getNotifications,
     select: (rows) => rows.map(normalizeNotification),
-    staleTime: 30_000,
-    refetchInterval: 60_000, // keep the unread badge reasonably fresh
+    staleTime: 60_000,
   });
