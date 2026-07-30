@@ -46,10 +46,10 @@ const BacklogDropzone = ({
           )}
         </div>
 
-        <Button onClick={openCreateSprint}>Create Sprint</Button>
+        <Button size="sm" className={"text-xs font-medium"} onClick={openCreateSprint}>Create Sprint</Button>
       </header>
 
-      <div className="flex min-h-[120px] flex-col gap-2">
+      <div className="flex min-h-30 flex-col gap-2">
         {cards.map((card) => (
           <BacklogItem
             key={card.id}

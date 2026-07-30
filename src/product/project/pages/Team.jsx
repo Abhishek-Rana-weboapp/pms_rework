@@ -14,10 +14,14 @@ import TeamForm from "../components/TeamForm";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { createFullName } from "@/shared/lib/helpers";
 import { Mail, Phone } from "lucide-react";
+import { useEmployees } from "@/product/dashboard/api/queries";
 
 const Team = () => {
   const { data: team=[] } = useGetTeams();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  useEmployees({
+    pageSize: 1000,
+  });
 
   const closeForm = () => setIsFormOpen(false);
 

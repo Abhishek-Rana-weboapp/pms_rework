@@ -151,7 +151,7 @@ const ArtifactList = () => {
         >
           {view === "grid" ? (
             <div className="grid grid-cols-1 gap-3">
-              {isLoading
+              {(isLoading || isFetching)
                 ? Array.from({ length: pageSize }).map((_, i) => (
                     <div
                       key={i}

@@ -1,11 +1,15 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 import path from "path"
 
+
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+
+  return {
   plugins: [
     react(),
     tailwindcss(),
@@ -20,11 +24,12 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://110.225.254.51:4040",
+        target: env.VITE_API_URL,
         changeOrigin: true,
         secure: false,
       },
     },
   }
+}
 }
 )

@@ -9,7 +9,7 @@ const ProtectedRoute = () => {
 
   if (status === "loading") {
     return (
-      <div className="grid min-h-screen place-items-center text-gray-500">
+      <div className="shimmer grid min-h-screen place-items-center text-gray-500">
         Checking session…
       </div>
     );

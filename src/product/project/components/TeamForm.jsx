@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useEmployees } from "@/product/dashboard/api/queries";
@@ -58,26 +58,21 @@ const TeamForm = ({ onSuccess, onCancel }) => {
   // the very same option object the dropdown renders. That identity is the whole
   // point: it carries the employee id `assign_developers` expects, and it lets
   // Base UI recognise a pre-selected developer as already selected.
-  const { developerOptions, optionByKey } = useMemo(() => {
-    const options = [];
-    const byKey = new Map();
+  const developerOptions = [];
+  const optionByKey = new Map();
+  for (const employee of employeesData?.results ?? []) {
+    const option = {
+      label: createFullName(employee) || employee.email || `#${employee.id}`,
+      value: employee.id,
+    };
+    developerOptions.push(option);
 
-    for (const employee of employeesData?.results ?? []) {
-      const option = {
-        label: createFullName(employee) || employee.email || `#${employee.id}`,
-        value: employee.id,
-      };
-      options.push(option);
-
-      if (employee.id != null) byKey.set(`id:${employee.id}`, option);
-      if (employee.uuid) byKey.set(`uuid:${employee.uuid}`, option);
-      if (employee.email) {
-        byKey.set(`email:${String(employee.email).toLowerCase()}`, option);
-      }
+    if (employee.id != null) optionByKey.set(`id:${employee.id}`, option);
+    if (employee.uuid) optionByKey.set(`uuid:${employee.uuid}`, option);
+    if (employee.email) {
+      optionByKey.set(`email:${String(employee.email).toLowerCase()}`, option);
     }
-
-    return { developerOptions: options, optionByKey: byKey };
-  }, [employeesData]);
+  }
 
   // The team endpoint and the employee list use different serializers AND
   // different id spaces, so a team row is resolved by uuid/email as well as id.
@@ -85,52 +80,45 @@ const TeamForm = ({ onSuccess, onCancel }) => {
   // which is why re-picking a pre-selected developer added a duplicate instead of
   // toggling them off. The team-derived fallback only applies when no employee
   // record matches at all, so a chip is never silently dropped.
-  const resolveMemberOption = useCallback(
-    (member) =>
-      optionByKey.get(`id:${member.id}`) ??
-      optionByKey.get(`uuid:${member.uuid}`) ??
-      (member.email
-        ? optionByKey.get(`email:${String(member.email).toLowerCase()}`)
-        : undefined) ??
-      (member.id != null
-        ? {
-            label: createFullName(member) || member.email || `#${member.id}`,
-            value: member.id,
-          }
-        : null),
-    [optionByKey],
-  );
+  const resolveMemberOption = (member) =>
+    optionByKey.get(`id:${member.id}`) ??
+    optionByKey.get(`uuid:${member.uuid}`) ??
+    (member.email
+      ? optionByKey.get(`email:${String(member.email).toLowerCase()}`)
+      : undefined) ??
+    (member.id != null
+      ? {
+          label: createFullName(member) || member.email || `#${member.id}`,
+          value: member.id,
+        }
+      : null);
 
-  const assignedOptions = useMemo(() => {
-    const resolved = [];
+  const assignedOptions = [];
+  {
     const seen = new Set();
-
     for (const member of team ?? []) {
       const option = resolveMemberOption(member);
       if (!option || seen.has(String(option.value))) continue;
 
       seen.add(String(option.value));
-      resolved.push(option);
+      assignedOptions.push(option);
     }
-
-    return resolved;
-  }, [team, resolveMemberOption]);
+  }
 
   // A fallback option (a team member with no matching employee record) would
   // otherwise live only in `selected`, never in the list the dropdown renders —
   // so there'd be no row to tick, and picking that person from the list would add
   // a second entry for them. Folding the extras into `items` keeps one option
   // object behind the chip, the tick, and the toggle.
-  const comboboxItems = useMemo(() => {
-    const knownValues = new Set(
-      developerOptions.map((option) => String(option.value)),
-    );
-    const extras = assignedOptions.filter(
-      (option) => !knownValues.has(String(option.value)),
-    );
-
-    return extras.length ? [...extras, ...developerOptions] : developerOptions;
-  }, [developerOptions, assignedOptions]);
+  const knownValues = new Set(
+    developerOptions.map((option) => String(option.value)),
+  );
+  const extras = assignedOptions.filter(
+    (option) => !knownValues.has(String(option.value)),
+  );
+  const comboboxItems = extras.length
+    ? [...extras, ...developerOptions]
+    : developerOptions;
 
   const isLoadingData = employeesLoading || teamLoading;
 
@@ -151,10 +139,7 @@ const TeamForm = ({ onSuccess, onCancel }) => {
     },
   });
 
-  const selectedIds = useMemo(
-    () => new Set(selected.map((option) => String(option.value))),
-    [selected],
-  );
+  const selectedIds = new Set(selected.map((option) => String(option.value)));
 
   const handleSelectionChange = (value) => {
     setSelected(value);

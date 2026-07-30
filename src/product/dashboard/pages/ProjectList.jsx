@@ -12,6 +12,7 @@ import { useProjectFormDialog } from "@/product/project/context/projectFormDialo
 import PageLoader from "@/shared/components/layout/PageLoader";
 import { PaginationControls } from "@/shared/components/PaginationControls";
 import { PageSizeSelect } from "@/shared/components/PageSizeSelect";
+import SectionWrapper from "@/shared/components/wrappers/SectionWrapper";
 
 const ProjectList = () => {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ const ProjectList = () => {
   return (
     // 2. Wrap your view inside the provider so all child tooltips initialize perfectly
     <TooltipProvider delayDuration={200}>
-      <div className="p-4">
+      <div className="p-4 space-y-4">
         <ProjectListHeader
           dataView={dataView}
           projectCount={pagination?.count ?? projects?.length}
@@ -46,33 +47,34 @@ const ProjectList = () => {
         {isLoading ? (
           <PageLoader />
         ) : (
-          <main className="mt-6 flex flex-col gap-6">
-            {dataView === "table" ? (
-              <div className="">
-                <ProjectTableView
-                  onRowClick={handleClick}
-                  projects={projects}
-                  isLoading={isLoading}
+          <SectionWrapper>
+            <main className="flex flex-col gap-6">
+              {dataView === "table" ? (
+                <div className="">
+                  <ProjectTableView
+                    onRowClick={handleClick}
+                    projects={projects}
+                    isLoading={isLoading}
+                  />
+                </div>
+              ) : (
+                <ProjectGridView onClick={handleClick} projects={projects} />
+              )}
+              {/* Server-driven pagination, shared by both the grid and table views. */}
+              <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:justify-between">
+                <PageSizeSelect
+                  pageSize={pagination?.page_size ?? pageSize}
+                  onPageSizeChange={handlePageSizeChange}
+                />
+                <PaginationControls
+                  page={pagination?.page ?? page}
+                  pageCount={pagination?.total_pages ?? 1}
+                  onPageChange={setPage}
+                  className="mx-0 w-auto"
                 />
               </div>
-            ) : (
-              <ProjectGridView onClick={handleClick} projects={projects} />
-            )}
-
-            {/* Server-driven pagination, shared by both the grid and table views. */}
-            <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:justify-between">
-              <PageSizeSelect
-                pageSize={pagination?.page_size ?? pageSize}
-                onPageSizeChange={handlePageSizeChange}
-              />
-              <PaginationControls
-                page={pagination?.page ?? page}
-                pageCount={pagination?.total_pages ?? 1}
-                onPageChange={setPage}
-                className="mx-0 w-auto"
-              />
-            </div>
-          </main>
+            </main>
+          </SectionWrapper>
         )}
       </div>
     </TooltipProvider>
@@ -84,7 +86,7 @@ export default ProjectList;
 const ProjectListHeader = ({ projectCount = 0, dataView, setDataView }) => {
   const { openAdd } = useProjectFormDialog();
   return (
-    <div className="flex justify-between items-center w-full">
+    <SectionWrapper className="flex justify-between items-center w-full">
       <div className="flex flex-col">
         <h1 className="text-xl font-medium">Projects</h1>
         <p className="text-sm text-muted-foreground">
@@ -99,6 +101,6 @@ const ProjectListHeader = ({ projectCount = 0, dataView, setDataView }) => {
           <Plus className="h-4 w-4" /> New Project
         </Button>
       </div>
-    </div>
+    </SectionWrapper>
   );
 };
