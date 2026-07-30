@@ -82,6 +82,15 @@ function ComboboxInput({
   );
 }
 
+/**
+ * `container` re-parents the popup, which is required inside a modal Radix
+ * dialog: Radix sets `pointer-events: none` on `<body>` and re-enables it only
+ * on its own layers, so a popup portaled to `<body>` (the default) renders but
+ * swallows every click — keyboard selection still works, which is the tell.
+ * Portaling into an element inside the dialog also stops Radix from treating
+ * clicks on the popup as an outside interaction and closing the dialog.
+ * Pass a ref to a node that isn't `overflow: hidden`, or the popup will clip.
+ */
 function ComboboxContent({
   className,
   side = "bottom",
@@ -89,10 +98,11 @@ function ComboboxContent({
   align = "start",
   alignOffset = 0,
   anchor,
+  container,
   ...props
 }) {
   return (
-    <ComboboxPrimitive.Portal>
+    <ComboboxPrimitive.Portal container={container}>
       <ComboboxPrimitive.Positioner
         side={side}
         sideOffset={sideOffset}

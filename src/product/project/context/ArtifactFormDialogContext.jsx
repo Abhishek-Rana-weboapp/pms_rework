@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { ArtifactFormDialogContext } from "./ArtifactFormDialogStore";
 import {
   Dialog,
@@ -6,8 +6,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import ArtifactForm from "../components/ArtifactForm/ArtifactForm";
+import { Spinner } from "@/shared/components/ui/spinner";
 import { humanize } from "../config/artifacts/artifactConfig";
+
+// Deferred so the form's dependencies load on first open rather than with ProjectLayout.
+const ArtifactForm = lazy(() => import("../components/ArtifactForm/ArtifactForm"));
 
 const initialState = {
   mode: "add",
@@ -71,15 +74,23 @@ export const ArtifactFormDialogProvider = ({ children }) => {
           </DialogHeader>
 
           <div className="overflow-y-auto px-6 pb-6 scrollbar-thin">
-            <ArtifactForm
-              key={isEdit ? "edit" : "add"}
-              mode={state.mode}
-              artifact={state.artifact}
-              presetType={state.presetType}
-              prefill={state.prefill}
-              onSuccess={close}
-              onCancel={close}
-            />
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-10">
+                  <Spinner />
+                </div>
+              }
+            >
+              <ArtifactForm
+                key={isEdit ? "edit" : "add"}
+                mode={state.mode}
+                artifact={state.artifact}
+                presetType={state.presetType}
+                prefill={state.prefill}
+                onSuccess={close}
+                onCancel={close}
+              />
+            </Suspense>
           </div>
         </DialogContent>
       </Dialog>

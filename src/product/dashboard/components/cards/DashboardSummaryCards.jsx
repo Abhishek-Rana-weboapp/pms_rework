@@ -28,13 +28,15 @@ const DashboardSummaryCards = ({ title, value }) => {
 
   return (
     <div className="w-full flex flex-col items-start bg-white p-4 rounded-md shadow gap-2">
-      <div
-        className={`p-2 rounded-lg ${metaData[title].color} ${metaData[title].bg} `}
-      >
-        {metaData[title].icon}
+      <div className="flex items-center gap-2">
+        <div
+          className={`p-2 rounded-lg ${metaData[title].color} ${metaData[title].bg} `}
+        >
+          {metaData[title].icon}
+        </div>
+        <div className="font-medium text-gray-700">{humanize(title)}</div>
       </div>
-      <div className="text-sm text-gray-700">{humanize(title)}</div>
-      <div className="text-xl font-semibold">{value}</div>
+      <div className="text-xl font-semibold pl-3">{value}</div>
     </div>
   );
 };

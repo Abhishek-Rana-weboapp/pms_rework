@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { Extension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
+import { Color, TextStyle } from "@tiptap/extension-text-style";
 
 import { cn } from "@/shared/lib/utils";
 import { RICH_TEXT_CLASS } from "@/shared/lib/richTextStyles";
@@ -20,8 +21,9 @@ const ExtraShortcuts = Extension.create({
 });
 
 // Hoisted so the array isn't re-allocated per render (the editor is created once
-// anyway, but this keeps the config referentially stable).
-const EXTENSIONS = [StarterKit, ExtraShortcuts];
+// anyway, but this keeps the config referentially stable). Color stores its value
+// on the TextStyle mark, so TextStyle has to be registered alongside it.
+const EXTENSIONS = [StarterKit, TextStyle, Color, ExtraShortcuts];
 
 /**
  * Controlled rich-text editor for react-hook-form. Wire it through a Controller:

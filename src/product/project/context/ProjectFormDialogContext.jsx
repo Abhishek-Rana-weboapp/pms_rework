@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,8 +14,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
-import ProjectForm from "@/product/project/components/ProjectForm";
+import { Spinner } from "@/shared/components/ui/spinner";
 import { ProjectFormDialogContext } from "./projectFormDialogStore";
+
+// This provider sits on DashboardLayout, so a static import would pull the form's
+// dependencies (react-hook-form, zod, Tiptap, Dropzone) into every dashboard route.
+// Radix only renders DialogContent while open, so the chunk is fetched on first open.
+const ProjectForm = lazy(() => import("@/product/project/components/ProjectForm"));
 
 const initialState = { open: false, mode: "add", project: null };
 
@@ -86,13 +99,21 @@ export const ProjectFormDialogProvider = ({ children }) => {
           </DialogHeader>
 
           <div className="overflow-y-auto px-6 pb-6 scrollbar-thin">
-            <ProjectForm
-              key={isEdit ? "edit" : "add"}
-              mode={state.mode}
-              project={state.project}
-              onSuccess={close}
-              onCancel={close}
-            />
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-10">
+                  <Spinner />
+                </div>
+              }
+            >
+              <ProjectForm
+                key={isEdit ? "edit" : "add"}
+                mode={state.mode}
+                project={state.project}
+                onSuccess={close}
+                onCancel={close}
+              />
+            </Suspense>
           </div>
         </DialogContent>
       </Dialog>

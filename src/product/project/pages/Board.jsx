@@ -88,8 +88,9 @@ const Board = () => {
                 <MoreVertical />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-auto min-w-40">
+            <DropdownMenuContent align="center" className="w-auto min-w-40">
               <DropdownMenuItem
+                
                 className="cursor-pointer"
                 disabled={!activeSprint}
                 onSelect={() => {
@@ -103,7 +104,6 @@ const Board = () => {
           </DropdownMenu>
         </div>
       </div>
-
       {isLoading ? (
         <div className="flex flex-1 items-center justify-center">
           <Spinner />

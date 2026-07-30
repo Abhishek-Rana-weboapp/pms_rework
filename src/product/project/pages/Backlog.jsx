@@ -117,6 +117,101 @@ const Backlog = () => {
     );
   };
 
+  const handleDragStart = (event) => {
+    isDraggingRef.current = true;
+    const cardId = event.operation.source?.id ?? null;
+
+    const sourceColumn = columns.find((column) =>
+      column.cards.some((card) => String(card.id) === String(cardId)),
+    );
+
+    const startedCard = sourceColumn?.cards.find(
+      (card) => String(card.id) === String(cardId),
+    );
+
+    dragStart.current = {
+      columns,
+      cardId,
+      fromColumnId: sourceColumn?.id ?? null,
+    };
+
+    latest.current = columns;
+    setActiveCard(startedCard ?? null);
+  };
+
+  const handleDragOver = (event) => {
+    const { source, target } = event.operation;
+    // Only move between dropzones — never reorder within the same column.
+    if (
+      !source ||
+      !target ||
+      String(source.data?.columnId) === String(target.data?.columnId)
+    ) {
+      return;
+    }
+
+    setColumns((cols) => {
+      const next = moveCard(cols, event);
+      latest.current = next;
+      return next;
+    });
+  };
+
+  const handleDragEnd = (event) => {
+    setActiveCard(null);
+
+    try {
+      const { cardId, fromColumnId } = dragStart.current;
+
+      if (event.canceled) {
+        setColumns(dragStart.current.columns);
+        latest.current = dragStart.current.columns;
+        return;
+      }
+
+      const finalColumns = latest.current;
+
+      const destinationColumn = finalColumns.find((column) =>
+        column.cards.some((card) => String(card.id) === String(cardId)),
+      );
+
+      if (!destinationColumn) {
+        return;
+      }
+
+      if (String(destinationColumn.id) === String(fromColumnId)) {
+        return;
+      }
+
+      const item = finalColumns
+        .flatMap((column) => column.cards)
+        .find((card) => String(card.id) === String(cardId));
+
+      const artifactIds = [String(cardId), ...getDescendantIds(item)];
+
+      setColumns(finalColumns);
+      latest.current = finalColumns;
+
+      if (destinationColumn.id === BACKLOG_COLUMN_ID) {
+        removeItem({
+          sprintId: fromColumnId,
+          artifactIds,
+          fromColumnId,
+          toColumnId: BACKLOG_COLUMN_ID,
+        });
+      } else {
+        moveItem({
+          sprintId: destinationColumn.id,
+          artifactIds,
+          fromColumnId,
+          toColumnId: destinationColumn.id,
+        });
+      }
+    } finally {
+      isDraggingRef.current = false;
+    }
+  };
+
   return (
     <BacklogProvider>
       <SectionWrapper className="flex flex-col gap-4">
@@ -131,97 +226,9 @@ const Backlog = () => {
         ) : (
           <DragDropProvider
             sensors={backlogSensors}
-            onDragStart={(event) => {
-              isDraggingRef.current = true;
-              const cardId = event.operation.source?.id ?? null;
-
-              const sourceColumn = columns.find((column) =>
-                column.cards.some((card) => String(card.id) === String(cardId)),
-              );
-
-              const startedCard = sourceColumn?.cards.find(
-                (card) => String(card.id) === String(cardId),
-              );
-
-              dragStart.current = {
-                columns,
-                cardId,
-                fromColumnId: sourceColumn?.id ?? null,
-              };
-
-              latest.current = columns;
-              setActiveCard(startedCard ?? null);
-            }}
-            onDragOver={(event) => {
-              const { source, target } = event.operation;
-              // Only move between dropzones — never reorder within the same column.
-              if (
-                !source ||
-                !target ||
-                String(source.data?.columnId) === String(target.data?.columnId)
-              ) {
-                return;
-              }
-              setColumns((cols) => {
-                const next = moveCard(cols, event);
-                latest.current = next;
-                return next;
-              });
-            }}
-            onDragEnd={(event) => {
-              setActiveCard(null);
-
-              try {
-                const { cardId, fromColumnId } = dragStart.current;
-
-                if (event.canceled) {
-                  setColumns(dragStart.current.columns);
-                  latest.current = dragStart.current.columns;
-                  return;
-                }
-
-                const finalColumns = latest.current;
-
-                const destinationColumn = finalColumns.find((column) =>
-                  column.cards.some((card) => String(card.id) === String(cardId)),
-                );
-
-                if (!destinationColumn) {
-                  return;
-                }
-
-                if (String(destinationColumn.id) === String(fromColumnId)) {
-                  return;
-                }
-
-                const item = finalColumns
-                  .flatMap((column) => column.cards)
-                  .find((card) => String(card.id) === String(cardId));
-
-                const artifactIds = [String(cardId), ...getDescendantIds(item)];
-
-                setColumns(finalColumns);
-                latest.current = finalColumns;
-
-                if (destinationColumn.id === BACKLOG_COLUMN_ID) {
-                  removeItem({
-                    sprintId: fromColumnId,
-                    artifactIds,
-                    fromColumnId,
-                    toColumnId: BACKLOG_COLUMN_ID,
-                  });
-                } else {
-                  moveItem({
-                    sprintId: destinationColumn.id,
-                    artifactIds,
-                    fromColumnId,
-                    toColumnId: destinationColumn.id,
-                  });
-                }
-              } finally {
-                isDraggingRef.current = false;
-              }
-            }}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
           >
             <div className="flex flex-col gap-4">
               {sprintColumns.map((column) => (

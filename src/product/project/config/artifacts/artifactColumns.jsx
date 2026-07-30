@@ -57,7 +57,7 @@ export const titleColumn = (title = "Title") => ({
       <div className="py-1">
         <div className="font-medium text-foreground">{value}</div>
         {descriptionText && (
-          <div className="truncate text-xs text-muted-foreground max-w-md">
+          <div className="truncate text-xs text-muted-foreground max-w-50">
             {descriptionText}
           </div>
         )}
@@ -178,13 +178,14 @@ export const statusColumn = () => ({
 
 export const actionColumn = ({ onEdit = () => {}, onDelete = () => {} }) => ({
   id: "actions",
-  meta: { label: "Actions" },
+  // exemptRowInteraction keeps this cell's hover/click from reaching the row.
+  meta: { label: "Actions", exemptRowInteraction: true },
   header: ({ column }) => (
     <DataTableColumnHeader column={column} title="Actions" />
   ),
   cell: ({ row }) => (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger className="hover:bg-transparent p-2 rounded-md hover:text-primary cursor-pointer" >
         <MoreHorizontal />
       </DropdownMenuTrigger>
 

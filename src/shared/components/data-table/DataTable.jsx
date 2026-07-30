@@ -236,16 +236,33 @@ export default function DataTable({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-                  className={`bg-white ${onRowClick ? "cursor-pointer" : undefined}`}
+                  className={cn(
+                    "bg-white",
+                    // :has() outranks TableRow's own hover/aria-expanded rules,
+                    // so an exempt cell never shades the row it sits in.
+                    "hover:has-[[data-row-exempt]:hover]:bg-white",
+                    "has-[[data-row-exempt]_[aria-expanded=true]]:bg-white",
+                    onRowClick && "cursor-pointer",
+                  )}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const isExempt =
+                      cell.column.columnDef.meta?.exemptRowInteraction;
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        data-row-exempt={isExempt || undefined}
+                        onClick={
+                          isExempt ? (e) => e.stopPropagation() : undefined
+                        }
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               ))
             ) : (

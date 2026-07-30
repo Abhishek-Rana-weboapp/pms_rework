@@ -94,7 +94,7 @@ const ArtifactList = () => {
 
 
   return (
-    <SectionWrapper className="space-y-3">
+    <SectionWrapper className="space-y-3 ">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
