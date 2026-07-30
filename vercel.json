@@ -1,11 +1,12 @@
 {
+  "functions": {
+    "api/**": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "http://110.225.254.51\\:4040/api/$1"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
