@@ -5,7 +5,7 @@ const config = {
       {
         source: "/api/:path*",
         // Pulls the backend URL dynamically from your Vercel Dashboard at build time
-        destination: `${process.env.VITE_API_URL || 'https://fallback-backend.com'}/api/:path*`
+        destination: `http://110.225.254.51:4040/api/:path*`
       },
       {
         source: "/(.*)",
@@ -15,4 +15,3 @@ const config = {
   };
   
   export default config;
-  
