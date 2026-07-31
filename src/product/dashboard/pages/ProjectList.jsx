@@ -34,6 +34,7 @@ const ProjectList = () => {
     setPage(1);
   };
 
+
   return (
     // 2. Wrap your view inside the provider so all child tooltips initialize perfectly
     <TooltipProvider delayDuration={200}>
@@ -47,7 +48,7 @@ const ProjectList = () => {
         {isLoading ? (
           <PageLoader />
         ) : (
-          <SectionWrapper>
+          projects?.length > 0 ? <SectionWrapper>
             <main className="flex flex-col gap-6">
               {dataView === "table" ? (
                 <div className="">
@@ -74,6 +75,8 @@ const ProjectList = () => {
                 />
               </div>
             </main>
+          </SectionWrapper> : <SectionWrapper>
+              <p className="text-center text-muted-foreground">No projects Assigned</p>
           </SectionWrapper>
         )}
       </div>

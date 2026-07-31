@@ -1,4 +1,4 @@
-import { useCurrentUser } from "@/product/auth/hooks/useCurrentUser";
+import { useCurrentUser } from "@/product/auth/api/authQueries";
 import { Button } from "@/shared/components/ui/button";
 import { Spinner } from "@/shared/components/ui/spinner";
 import Wrapper from "@/shared/components/wrappers/Wrapper";

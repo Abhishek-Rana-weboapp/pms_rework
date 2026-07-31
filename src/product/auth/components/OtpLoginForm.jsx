@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { otpLoginSchema } from "../config/LoginSchema";
 import OtpDialog from "./OtpDialog";
-import { useOtpLogin } from "../hooks/useOtpLogin";
+import { useOtpLogin } from "../api/authMutations";
 import { Button } from "@/shared/components/ui/button";
 
 const getSendErrorMessage = (error) => {

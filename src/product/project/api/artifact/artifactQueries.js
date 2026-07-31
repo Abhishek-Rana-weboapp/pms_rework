@@ -8,6 +8,7 @@ export const useArtifact = ({artifactId}, options={})=>{
         queryKey:queryKeys.artifacts.detail(artifactId),
         queryFn:()=>getArtifactDetails(artifactId),
         enabled:!!artifactId,
+        refetchOnWindowFocus: false,
         ...options
     })
 }
@@ -23,6 +24,7 @@ export const useArtifactChildren = ({ artifactId, type }, options = {}) => {
         queryFn: () => getArtifactChildren({ artifactId, type }),
         enabled: !!artifactId && !!type,
         placeholderData: keepPreviousData,
+        refetchOnWindowFocus: false,
         ...options,
     })
 }

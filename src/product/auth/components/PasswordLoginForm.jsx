@@ -8,9 +8,9 @@ import { Button } from "@/shared/components/ui/button";
 import { passwordLoginSchema } from "../config/LoginSchema";
 import {
   usePasswordLogin,
-  getLoginErrorMessage,
-} from "../hooks/usePasswordLogin";
+} from "../api/authMutations";
 import OtpDialog from "./OtpDialog";
+import { getLoginErrorMessage } from "@/shared/lib/authHelpers";
 
 const PasswordLoginForm = ({ handleModeChange }) => {
   const [showPassword, setShowPassword] = useState(false);

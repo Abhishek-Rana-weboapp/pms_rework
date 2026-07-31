@@ -15,8 +15,7 @@ import { Button } from "@/shared/components/ui/button";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
 import { NavLink } from "react-router-dom";
-import { useSignUp } from "../hooks/useSIgnUp";
-import { toast } from "sonner";
+import { useSignUp } from "../api/authMutations";
 import OtpDialog from "./OtpDialog";
 
 const SignUpForm = () => {

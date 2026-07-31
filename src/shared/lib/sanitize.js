@@ -24,8 +24,15 @@ const ALLOWED_TAGS = [
 ];
 
 // `style` is allowed only so the text-colour mark survives; the hook below
-// reduces it to a single validated `color` declaration.
-const ALLOWED_ATTR = ["style"];
+// reduces it to a single validated `color` declaration. The `data-*` trio is
+// what a mention is made of — strip those and a mention decays into plain text
+// that no longer identifies anyone. `class` is deliberately NOT allowed: stored
+// HTML could otherwise borrow app utilities to reposition or cover the page.
+const ALLOWED_ATTR = ["style", "data-type", "data-id", "data-label"];
+
+// DOMPurify lets every `data-*` attribute through by default; the mention ones
+// are enumerated above instead, so nothing else rides along on stored HTML.
+const ALLOW_DATA_ATTR = false;
 
 // Colour syntaxes the picker can emit, plus the rgb()/rgba() forms browsers
 // normalize hex into when the attribute is re-parsed.
@@ -59,5 +66,9 @@ DOMPurify.addHook("afterSanitizeAttributes", (node) => {
  */
 export const sanitizeHtml = (html) => {
   if (!html) return "";
-  return DOMPurify.sanitize(String(html), { ALLOWED_TAGS, ALLOWED_ATTR });
+  return DOMPurify.sanitize(String(html), {
+    ALLOWED_TAGS,
+    ALLOWED_ATTR,
+    ALLOW_DATA_ATTR,
+  });
 };

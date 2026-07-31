@@ -40,6 +40,8 @@ export const queryKeys = {
     list: (filters) => [...queryKeys.projects.lists(), filters ?? {}],
     details: () => [...queryKeys.projects.all, "detail"],
     detail: (id) => [...queryKeys.projects.details(), id],
+    // Infinite artifact-activity feed for a project (History tab).
+    history: (projectId) => [...queryKeys.projects.all, "history", projectId],
   },
 
   reports: {
@@ -74,6 +76,16 @@ export const queryKeys = {
       "children",
       artifactId,
       type,
+    ],
+  },
+
+  comments: {
+    all: ["comments"],
+    list: (projectId, artifactId) => [
+      ...queryKeys.comments.all,
+      "list",
+      projectId,
+      artifactId,
     ],
   },
 
@@ -146,5 +158,14 @@ export const queryKeys = {
 
   sprints:{
     all:["sprints"]
-  }
+  },
+
+  timeLog: {
+    all: (projectId) => ["timeLog", projectId],
+    list: (projectId, filters) => [
+      ...queryKeys.timeLog.all(projectId),
+      "list",
+      filters ?? {},
+    ],
+  },
 };

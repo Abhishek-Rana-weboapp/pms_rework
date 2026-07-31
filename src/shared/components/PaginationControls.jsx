@@ -44,6 +44,9 @@ const getPageTokens = (page, pageCount, siblingCount) => {
  * @param {number}   pageCount     Total number of pages.
  * @param {(page:number)=>void} onPageChange
  * @param {number}   [siblingCount=1]  Neighbour pages shown around the current.
+ * @param {boolean}  [showWhenSinglePage=false]  A single-page list renders
+ *   nothing by default. Opt in to keep the controls mounted (disabled) so the
+ *   layout doesn't shift the moment the list grows past one page.
  */
 export function PaginationControls({
   page,
@@ -51,15 +54,19 @@ export function PaginationControls({
   onPageChange,
   siblingCount = 1,
   className,
+  showWhenSinglePage = false,
 }) {
-  if (!pageCount || pageCount <= 1) return null;
+  // Guards against a missing/zero count (e.g. the first load) so the disabled
+  // controls still render as page 1 of 1 rather than an empty bar.
+  const totalPages = Math.max(pageCount ?? 0, 1);
+  if (totalPages <= 1 && !showWhenSinglePage) return null;
 
   const goTo = (next) => {
-    const clamped = Math.min(Math.max(next, 1), pageCount);
+    const clamped = Math.min(Math.max(next, 1), totalPages);
     if (clamped !== page) onPageChange(clamped);
   };
 
-  const tokens = getPageTokens(page, pageCount, siblingCount);
+  const tokens = getPageTokens(page, totalPages, siblingCount);
 
   return (
     <Pagination className={className}>
@@ -91,7 +98,7 @@ export function PaginationControls({
         <PaginationItem>
           <PaginationNext
             onClick={() => goTo(page + 1)}
-            disabled={page >= pageCount}
+            disabled={page >= totalPages}
           />
         </PaginationItem>
       </PaginationContent>

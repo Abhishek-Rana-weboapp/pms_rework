@@ -1,4 +1,4 @@
-import { useCurrentUser } from "@/product/auth/hooks/useCurrentUser";
+import { useCurrentUser } from "@/product/auth/api/authQueries";
 import { useAuth } from "@/app/providers/AuthContext";
 import {
   Avatar,

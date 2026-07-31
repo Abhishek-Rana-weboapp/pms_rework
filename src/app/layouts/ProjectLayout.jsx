@@ -48,9 +48,9 @@ const ProjectLayout = () => {
           <ArrowLeft className="md:size-4 size-3 " />
           <span className="text-xs">All Projects</span>
         </button>
-        <div className="flex justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <h2 className="sm:text-xl text-lg font-semibold">
+        <div className="flex justify-between sm:items-center items-start mb-2">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center items-start gap-2">
+            <h2 className="sm:text-xl font-semibold">
               {projectData.project_name}
             </h2>
             <Badge>{projectData.project_status}</Badge>
@@ -99,7 +99,7 @@ const ProjectLayout = () => {
                 </div>
               }
             >
-              <Outlet />
+            <Outlet />
             </Suspense>
           </ArtifactFormDialogProvider>
         </SprintFormDialogProvider>

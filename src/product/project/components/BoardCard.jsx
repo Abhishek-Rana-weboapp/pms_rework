@@ -10,11 +10,15 @@ import {
 //
 // Note: the board payload has no `priority`, so we don't render a priority pill.
 const BoardCard = ({ card }) => {
+  console.log(card);
+  
   const { title, developer, storyPoint } = card;
+  const epicName = card?.raw?.epic_name || "";
 
   return (
     <div className="space-y-2">
       <p className="line-clamp-2 text-sm font-medium text-foreground">{title}</p>
+      <p className="text-xs -mt-1 text-muted-foreground">{epicName}</p>
 
       <div className="flex items-center justify-between gap-2">
         {storyPoint ? (

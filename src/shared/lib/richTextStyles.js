@@ -14,4 +14,8 @@ export const RICH_TEXT_CLASS = [
   "[&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-xs",
   "[&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:text-xs [&_pre>code]:bg-transparent [&_pre>code]:p-0",
   "[&_hr]:my-3 [&_hr]:border-border",
+  // Mentions are plain spans identified by their data-type (no class survives
+  // sanitization), styled here so a pill looks the same while being written and
+  // once it's posted.
+  "[&_span[data-type=mention]]:rounded-sm [&_span[data-type=mention]]:bg-primary/10 [&_span[data-type=mention]]:px-1 [&_span[data-type=mention]]:font-medium [&_span[data-type=mention]]:text-primary",
 ].join(" ");

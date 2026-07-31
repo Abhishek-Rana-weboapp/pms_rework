@@ -13,6 +13,15 @@ export const hasFieldErrors = (error) => {
   );
 };
 
+// Best-effort human-readable message for an error that ISN'T a field error:
+// the backend's top-level `message`, else the first entry of a plain `errors`
+// array, else the caller's fallback.
+export const getErrorMessage = (error, fallback) =>
+  error?.response?.data?.message ||
+  (Array.isArray(error?.response?.data?.errors) &&
+    error.response.data.errors[0]) ||
+  fallback;
+
 // Maps a backend validation-error response onto react-hook-form fields.
 //
 // Backend shape (from the API's 400 "Validation Error"):

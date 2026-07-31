@@ -26,3 +26,9 @@ export const resendOtp = (payload) =>
 
 export const signup = (payload) =>
   authClient.post("auth/org-user/signup/", payload).then((r) => r.data);
+
+// Body is just { password }; the invite JWT rides in Authorization as Bearer.
+export const setPassword = (payload, token) =>
+  authClient
+    .post("auth/set-password/", payload)
+    .then((r) => r.data);

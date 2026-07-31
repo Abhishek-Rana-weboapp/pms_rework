@@ -19,15 +19,15 @@ const ArtifactDetails = () => {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5">
       <ArtifactDetailsHeading artifact={artifact} />
 
-      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
         <aside className="min-w-0 order-1 lg:order-2 lg:sticky lg:top-3 lg:col-span-1">
           <ArtifactStatusDetails artifact={artifact} />
         </aside>
 
-        <div className="flex min-w-0 flex-col gap-3 order-2 lg:order-1 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-5 order-2 lg:order-1 lg:col-span-2">
           <AcceptanceCriteria artifact={artifact} />
           <ImplementationPlan artifact={artifact} />
 

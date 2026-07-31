@@ -1,7 +1,13 @@
 import { useParams } from "react-router-dom";
 import { queryKeys } from "@/shared/services/api/queryKeys"
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import { getArtifactsList, getBoards, getProject, getProjectStatuses } from "./projectEndpoints"
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query"
+import {
+  getArtifactHistory,
+  getArtifactsList,
+  getBoards,
+  getProject,
+  getProjectStatuses,
+} from "./projectEndpoints"
 
 export const useProject = (projectId, options={})=>{
     return useQuery({
@@ -58,6 +64,26 @@ export const useBoards = (options = {}) => {
     queryKey: queryKeys.boards.all(projectId),
     queryFn: () => getBoards(projectId),
     enabled: !!projectId,
+    ...options,
+  });
+};
+
+// Infinite artifact-history feed for the current project route.
+// Pages by incrementing `pagination.current_page` while `pagination.next` is set.
+export const useArtifactHistory = (options = {}) => {
+  const { projectId } = useParams();
+
+  return useInfiniteQuery({
+    queryKey: queryKeys.projects.history(projectId),
+    queryFn: ({ pageParam = 1 }) =>
+      getArtifactHistory({ projectId, page: pageParam }),
+    initialPageParam: 1,
+    enabled: !!projectId,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage?.pagination;
+      if (!pagination?.next) return undefined;
+      return (pagination.current_page || 1) + 1;
+    },
     ...options,
   });
 };

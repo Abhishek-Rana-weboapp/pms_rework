@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { Extension } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
@@ -7,6 +7,7 @@ import { Color, TextStyle } from "@tiptap/extension-text-style";
 import { cn } from "@/shared/lib/utils";
 import { RICH_TEXT_CLASS } from "@/shared/lib/richTextStyles";
 import MenuBar from "./MenuBar";
+import { createMentionExtension, setMentionItems } from "./mentionExtension";
 
 // StarterKit binds shortcuts for every mark/node it ships EXCEPT the horizontal
 // rule, so we add that one keymap here. Everything else (bold, headings, lists,
@@ -32,6 +33,11 @@ const EXTENSIONS = [StarterKit, TextStyle, Color, ExtraShortcuts];
  * Emits HTML, normalized so an empty editor yields "" (not "<p></p>") — that's
  * what lets a plain `z.string().min(1)` treat a blank editor as empty/required.
  * Output should be sanitized before it's persisted/rendered (see sanitizeHtml).
+ *
+ * Pass `mentions` (an array of `{ id, label, image?, description? }`) to enable
+ * "@" mentions. It may start empty and fill in later, but it has to be an array
+ * from the first render: the editor — and with it the extension list — is only
+ * created once, so `undefined` initially means no mentions for this instance.
  */
 const Tiptap = ({
   value,
@@ -40,9 +46,14 @@ const Tiptap = ({
   disabled = false,
   className,
   editorClassName,
+  mentions,
 }) => {
+  const [extensions] = useState(() =>
+    mentions ? [...EXTENSIONS, createMentionExtension()] : EXTENSIONS,
+  );
+
   const editor = useEditor({
-    extensions: EXTENSIONS,
+    extensions,
     content: value ?? "", // initial content only; external changes handled below
     editable: !disabled,
     // Perf (per Tiptap React docs): by default useEditor re-renders this
@@ -91,6 +102,12 @@ const Tiptap = ({
   useEffect(() => {
     editor?.setEditable(!disabled);
   }, [editor, disabled]);
+
+  // Hand the current candidates to the suggestion plugin, which reads them when
+  // the user types "@" rather than holding a copy of its own.
+  useEffect(() => {
+    setMentionItems(editor, mentions);
+  }, [editor, mentions]);
 
   return (
     <div

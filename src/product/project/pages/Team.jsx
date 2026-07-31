@@ -26,7 +26,7 @@ const Team = () => {
   const closeForm = () => setIsFormOpen(false);
 
   return (
-    <>
+    <div className="space-y-5">
     <SectionWrapper>
       <div className="flex justify-between items-center">
         <div>
@@ -54,8 +54,7 @@ const Team = () => {
         </Dialog>
       </div>
     </SectionWrapper>
-    <SectionWrapper>
-    <div className="p-4 rounded-lg border border-gray-300 grid md:grid-cols-2 gap-4 bg-white">
+    <SectionWrapper className={"grid grid-cols-1 lg:grid-cols-2 gap-4"}>
           {team.length > 0 ? (
             team.map((member, index) => (
               <TeamCard key={index} member={member} />
@@ -63,9 +62,8 @@ const Team = () => {
           ) : (
             <p className="text-gray-500">No team members found.</p>
           )}
-        </div>
     </SectionWrapper>
-    </>
+    </div>
   );
 };
 

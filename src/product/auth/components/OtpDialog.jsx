@@ -14,7 +14,8 @@ import {
   InputOTPSlot,
 } from "@/shared/components/ui/input-otp";
 
-import { useOtpLogin, getOtpErrorMessage } from "../hooks/useOtpLogin";
+import { useOtpLogin } from "../api/authMutations";
+import { getOtpErrorMessage } from "@/shared/lib/authHelpers";
 
 const OtpDialog = ({ isOpen, onChange, email, purpose = "login" }) => {
   const [otp, setOtp] = useState("");

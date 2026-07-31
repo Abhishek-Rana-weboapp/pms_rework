@@ -4,6 +4,7 @@ const GuestRoute = lazy(()=>import("@/shared/components/GuestRoute"))
 const AuthLayout = lazy(()=>import("../layouts/AuthLayout"))
 const Login = lazy(()=>import("@/product/auth/pages/Login"))
 const SignUp = lazy(()=>import("@/product/auth/pages/SignUp"))
+const SetPassword = lazy(()=>import("@/product/auth/pages/SetPassword"))
 
 // GuestRoute redirects already-authenticated users to their dashboard, so the
 // login/signup pages are unreachable while signed in (even via direct URL).
@@ -21,6 +22,10 @@ export const authRoutes = {
           path: "/signup",
           element: <SignUp />,
         },
+        {
+          path:"/set-password",
+          element:<SetPassword />
+        }
       ],
     },
   ],

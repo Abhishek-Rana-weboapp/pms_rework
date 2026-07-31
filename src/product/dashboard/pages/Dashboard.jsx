@@ -14,8 +14,6 @@ import { Button } from "@/shared/components/ui/button";
 const Dashboard = () => {
   const { data: dashboardData, isLoading, error, refetch } = useDashboard();
 
-  console.log(dashboardData);
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-full w-full">

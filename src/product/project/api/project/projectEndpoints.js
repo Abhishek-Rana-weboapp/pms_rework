@@ -96,3 +96,13 @@ export const moveArtifact = async ({ id, status, position }) => {
     return res.data?.data;
 };
 
+// Paginated artifact activity feed for a project. Shape:
+// { results: [...], pagination: { next, current_page, ... } }.
+export const getArtifactHistory = async ({ projectId, page = 1 }) => {
+  if (!projectId) throw new Error("projectId is required");
+  const res = await api.get(`project/${projectId}/artifact-history/`, {
+    params: { page },
+  });
+  return res.data?.data ?? {};
+};
+

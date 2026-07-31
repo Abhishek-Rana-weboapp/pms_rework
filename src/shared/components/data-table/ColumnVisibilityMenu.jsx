@@ -42,12 +42,14 @@ export function ColumnVisibilityMenu({
             </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent>
-          View Options
-        </TooltipContent>
+        <TooltipContent>View Options</TooltipContent>
       </Tooltip>
 
-      <DropdownMenuContent align="end" className="w-44" onCloseAutoFocus={(e) => e.preventDefault()} >
+      <DropdownMenuContent
+        align="end"
+        className="w-44"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {hideable.map((col) => {
@@ -55,6 +57,7 @@ export function ColumnVisibilityMenu({
           const checked = columnVisibility[key] !== false;
           return (
             <DropdownMenuCheckboxItem
+              onSelect={(e) => e.preventDefault()}
               key={key}
               className="capitalize"
               checked={checked}

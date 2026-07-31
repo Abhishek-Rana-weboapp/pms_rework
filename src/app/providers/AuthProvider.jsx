@@ -3,11 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { AuthContext } from "./AuthContext";
-import { useCurrentUser } from "@/product/auth/hooks/useCurrentUser";
+import { useCurrentUser } from "@/product/auth/api/authQueries";
 import { refreshAccessToken } from "@/shared/services/api/refresh";
 import { setAccessToken, clearAccessToken } from "@/shared/services/api/authToken";
 import { onAuthLogout } from "@/shared/services/api/authEvents";
 import { queryKeys } from "@/shared/services/api/queryKeys";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/components/ui/alert-dialog";
 
 // Only a non-credential identifier is persisted — enough to drive the profile
 // query after a boot refresh. The access token never touches storage.
@@ -27,6 +36,10 @@ const AuthProvider = ({ children }) => {
   // already-authenticated user to /login on a hard reload.
   const [status, setStatus] = useState(STATUS.LOADING);
   const [userId, setUserId] = useState(() => localStorage.getItem(USER_ID_KEY));
+  // Shown when the refresh cookie itself dies mid-session. Stays up until the
+  // user acknowledges — ProtectedRoute holds the redirect until then.
+  const [sessionExpiredOpen, setSessionExpiredOpen] = useState(false);
+  const sessionExpiredRef = useRef(false);
 
   // Only fetch the profile once we know the session is valid.
   const { data: user } = useCurrentUser(
@@ -41,6 +54,12 @@ const AuthProvider = ({ children }) => {
     setStatus(STATUS.UNAUTHENTICATED);
   };
 
+  const acknowledgeSessionExpired = () => {
+    sessionExpiredRef.current = false;
+    setSessionExpiredOpen(false);
+    navigate("/login", { replace: true });
+  };
+
   // Boot: rehydrate the in-memory access token from the HttpOnly refresh cookie.
   const bootRan = useRef(false);
   useEffect(() => {
@@ -49,31 +68,29 @@ const AuthProvider = ({ children }) => {
 
     refreshAccessToken()
       .then(() => {
-        // A valid refresh cookie can outlive localStorage (e.g. the user cleared
-        // it). Without a user_id we can't load the profile, so "authenticated"
-        // would be a dead end — the org-scoped redirect never resolves. Treat it
-        // as an unusable session and force a fresh login instead of hanging.
         if (!localStorage.getItem(USER_ID_KEY)) {
           clearSession();
           return;
         }
         setStatus(STATUS.AUTHENTICATED);
       })
-    //   // Refresh failed (expired/401/etc.) — the stored user_id is stale, so wipe
-    //   // the whole client session (token + user_id + cache) rather than trust it.
       .catch(clearSession);
-    // // clearSession only closes over stable setters/clients; run boot once.
-    // // eslint-disable-next-line react-hooks/exhaustive-deps
+    // clearSession only closes over stable setters/clients; run boot once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Forced logout dispatched by the axios interceptor when refresh fails.
+  // Wipe credentials immediately, but park on the expiry dialog instead of
+  // navigating — the user clicks OK to go to /login.
   useEffect(
     () =>
       onAuthLogout(() => {
+        if (sessionExpiredRef.current) return;
+        sessionExpiredRef.current = true;
         clearSession();
-        navigate("/login", { replace: true });
+        setSessionExpiredOpen(true);
       }),
-    // navigate/queryClient are stable; intentionally run once.
+    // clearSession closes over stable setters/clients; subscribe once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -86,6 +103,9 @@ const AuthProvider = ({ children }) => {
     if (!orgUuid || !profileId) {
       throw new Error("Login response missing profile or organization info.");
     }
+
+    sessionExpiredRef.current = false;
+    setSessionExpiredOpen(false);
 
     setAccessToken(data?.access);
     localStorage.setItem(USER_ID_KEY, profileId);
@@ -101,6 +121,8 @@ const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    sessionExpiredRef.current = false;
+    setSessionExpiredOpen(false);
     clearSession();
     navigate("/login", { replace: true });
   };
@@ -116,11 +138,39 @@ const AuthProvider = ({ children }) => {
     permissions,
     isAuthenticated: status === STATUS.AUTHENTICATED,
     isLoading: status === STATUS.LOADING,
+    sessionExpired: sessionExpiredOpen,
     finalizeLogin,
     logout,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+
+      <AlertDialog
+        open={sessionExpiredOpen}
+        // Escape / outside dismiss still counts as acknowledging — otherwise
+        // the user could close the dialog and sit on a dead session.
+        onOpenChange={(open) => {
+          if (!open) acknowledgeSessionExpired();
+        }}
+      >
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Session expired</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your session has expired. Please log in again to continue.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={acknowledgeSessionExpired}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </AuthContext.Provider>
+  );
 };
 
 export default AuthProvider;

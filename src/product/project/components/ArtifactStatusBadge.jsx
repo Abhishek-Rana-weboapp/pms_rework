@@ -1,13 +1,8 @@
 import { Badge } from "@/shared/components/ui/badge";
+import { getStatusCategoryColors } from "@/shared/lib/statusColors";
 import { useProjectStatuses } from "../api/project/projectQueries";
 import { useParams } from "react-router-dom";
 import { useGlobalStatus } from "@/product/settings/api/settingsQueries";
-
-const VARIANT_BY_CATEGORY = {
-  "TO DO": "bg-gray-200 text-gray-800",
-  "IN PROGRESS": "bg-blue-200 text-blue-800",
-  DONE: "bg-green-200 text-green-700",
-};
 
 const normalize = (value) => value?.trim().toUpperCase();
 
@@ -45,10 +40,9 @@ const ArtifactStatusBadge = ({ status, category }) => {
     }
   }
 
-  const variant =
-    VARIANT_BY_CATEGORY[normalize(resolvedCategory)] ?? "secondary";
+  const { badge } = getStatusCategoryColors(resolvedCategory, status);
 
-  return <Badge className={variant}>{status}</Badge>;
+  return <Badge className={badge}>{status}</Badge>;
 };
 
 export default ArtifactStatusBadge;

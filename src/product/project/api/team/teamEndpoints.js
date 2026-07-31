@@ -14,3 +14,14 @@ export const assignDevelopers = async ({ projectId, developerIds }) => {
   });
   return res.data?.data;
 };
+
+
+// Project timelog feed. Shape:
+// { pagination, results: { summary, logs_by_date: [{ date, total_hours, logs }] } }.
+export const getTimeLogs = async ({ projectId, page = 1, page_size = 20 } = {}) => {
+  if (!projectId) throw new Error("projectId is required");
+  const res = await api.get(`project/${projectId}/time-logs/`, {
+    params: { page, page_size },
+  });
+  return res.data?.data ?? {};
+};

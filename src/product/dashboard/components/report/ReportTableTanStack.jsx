@@ -57,12 +57,11 @@ function PlainReportTable({ report }) {
   return (
     <>
       <TableHeader>
-        <TableRow className="bg-gray-200 hover:bg-gray-200">
+        <TableRow className="bg-gray-200 hover:bg-gray-50">
           {report.columns?.map((column) => (
             <TableHead
               key={column.field ?? column.name}
-              className="whitespace-nowrap p-2 px-4 text-left font-medium"
-            >
+              className="whitespace-nowrap p-2 px-4 text-left font-medium text-gray-500 text-xs uppercase">
               {column.label}
             </TableHead>
           ))}
@@ -103,7 +102,7 @@ function GroupedReportTable({ tableModel, table }) {
           {rowGroupColumns.map((field) => (
             <TableHead
               key={field}
-              className="border-r border-b border-neutral-300 bg-gray-100 p-2 text-left capitalize"
+              className="border-r border-b border-neutral-300 bg-gray-50 p-2 text-gray-500 text-sm uppercase text-left"
             >
               {field.split("_").join(" ")}
             </TableHead>
@@ -113,7 +112,7 @@ function GroupedReportTable({ tableModel, table }) {
             ? columnHeaders.map((column) => (
                 <TableHead
                   key={column.key}
-                  className="border-r border-b border-neutral-300 bg-gray-100 p-2 text-center capitalize"
+                  className="border-r border-b border-neutral-300 bg-gray-50 p-2 text-gray-500 text-sm uppercase text-center"
                 >
                   {column.label}
                 </TableHead>
@@ -121,7 +120,7 @@ function GroupedReportTable({ tableModel, table }) {
             : dataColumns.map((column) => (
                 <TableHead
                   key={column.field}
-                  className="border-r border-b border-neutral-300 bg-gray-100 p-2 text-left capitalize"
+                  className="border-r border-b border-neutral-300 bg-gray-50 p-2 text-gray-500 text-sm uppercase text-left"
                 >
                   {column.label}
                 </TableHead>

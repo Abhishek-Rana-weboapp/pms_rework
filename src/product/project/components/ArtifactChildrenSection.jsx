@@ -87,7 +87,7 @@ const ArtifactChildrenSection = ({ artifact }) => {
         )}
       >
         {rows.map((child) => (
-          <ArtifactCard artifact={child} onClick={handleRowClick} />
+          <ArtifactCard key={child.id} artifact={child} onClick={handleRowClick} />
         ))}
       </ul>
     );

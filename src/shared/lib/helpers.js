@@ -91,3 +91,52 @@ export const getDescendantIds = (artifact) => {
   
     return ids;
   };
+
+export const getFileNameFromUrl = (url) => {
+  if (!url) return "N/A";
+
+  const fileName = url.split("?")[0].split("#")[0].split("/").pop();
+
+  try {
+    return decodeURIComponent(fileName) || "N/A";
+  } catch {
+    return fileName || "N/A";
+  }
+};
+
+export const formatUpdateString = (updateISOString) => {
+  if (!updateISOString) return "";
+
+  const updateDate = new Date(updateISOString);
+  if (Number.isNaN(updateDate.getTime())) return "";
+
+  const diffInSeconds = Math.max(
+    0,
+    Math.floor((Date.now() - updateDate.getTime()) / 1000),
+  );
+
+  if (diffInSeconds < 60) {
+    return `Updated ${diffInSeconds} seconds ago`;
+  }
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    return `Updated ${diffInMinutes} minutes ago`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `Updated ${diffInHours} hours ago`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 30) {
+    return `Updated ${diffInDays} days ago`;
+  }
+
+  return updateDate.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+};
