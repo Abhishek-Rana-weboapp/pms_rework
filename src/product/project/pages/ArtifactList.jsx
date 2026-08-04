@@ -22,6 +22,7 @@ import {
 import ArtifactCard from "../components/ArtifactCard";
 import { useLocalStorage } from "@/shared/hooks/useLocalStorage";
 import { useArtifactFormDialog } from "../context/ArtifactFormDialogStore";
+import PermissionGate from "@/product/auth/components/PermissionGate";
 
 const ArtifactList = () => {
   const navigate = useNavigate();
@@ -92,6 +93,8 @@ const ArtifactList = () => {
     navigate(`${artifact.id}`);
   };
 
+  console.log(config);
+
 
   return (
     <SectionWrapper className="space-y-3 ">
@@ -124,10 +127,12 @@ const ArtifactList = () => {
             )}
             <ViewToggle value={view} onValueChange={setView} />
           </div>
-          <Button onClick={() => openAdd(artifactType)}>
-            <Plus />
-            {config.addLabel}
-          </Button>
+          <PermissionGate permission={config.addPermission}>
+            <Button onClick={() => openAdd(artifactType)}>
+              <Plus />
+              {config.addLabel}
+            </Button>
+          </PermissionGate>
         </div>
       </div>
 

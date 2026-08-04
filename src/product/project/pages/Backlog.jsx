@@ -107,7 +107,8 @@ const Backlog = () => {
   const sprintColumns = columns.filter((c) => c.id !== BACKLOG_COLUMN_ID);
   const backlogColumn = columns.find((c) => c.id === BACKLOG_COLUMN_ID);
 
-  const renderCard = (card) => <BacklogCard card={card} />;
+  const isActiveSprint = (sprint) =>
+    String(sprint?.status ?? "").toLowerCase() === "active";
 
   const handleCardClick = (card) => {
     const type = (card?.raw?.task_type ?? "").toLowerCase();
@@ -237,7 +238,12 @@ const Backlog = () => {
                   sprint={column.meta}
                   columnId={column.id}
                   cards={column.cards}
-                  renderCard={renderCard}
+                  renderCard={(card) => (
+                    <BacklogCard
+                      card={card}
+                      canChangeStatus={isActiveSprint(column.meta)}
+                    />
+                  )}
                   onCardClick={handleCardClick}
                 />
               ))}
@@ -246,7 +252,7 @@ const Backlog = () => {
                 <BacklogDropzone
                   columnId={backlogColumn.id}
                   cards={backlogColumn.cards}
-                  renderCard={renderCard}
+                  renderCard={(card) => <BacklogCard card={card} />}
                   onCardClick={handleCardClick}
                   issues={backlogColumn.meta?.Issues}
                   storyPoints={backlogColumn.meta?.StoryPoints}

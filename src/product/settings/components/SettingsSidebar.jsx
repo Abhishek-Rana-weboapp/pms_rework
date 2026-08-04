@@ -9,7 +9,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from "@/shared/components/ui/sidebar";
 import { settingsSidebarItems } from "../config.js/SettingsSidebarData";
 

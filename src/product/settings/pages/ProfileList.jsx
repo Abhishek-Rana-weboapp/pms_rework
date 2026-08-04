@@ -1,9 +1,10 @@
 import DataTable from "@/shared/components/data-table/DataTable";
 import { Button } from "@/shared/components/ui/button";
 import Wrapper from "@/shared/components/wrappers/Wrapper";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useNavigation } from "react-router-dom";
 import { useProfiles } from "../api/settingsQueries";
 import { getProfileColumns } from "@/shared/components/data-table/columns/ProfileColumns";
+import { useState } from "react";
 
 // Sum assigned-user counts across profiles (supports array or number).
 const countUsers = (profiles) =>
@@ -14,6 +15,7 @@ const countUsers = (profiles) =>
 
 const ProfileList = () => {
   const navigate = useNavigate();
+  const [isNavigating, setIsNavigating] = useState(false);
   const { data: profiles = [], isLoading } = useProfiles();
 
   const columns = getProfileColumns({
@@ -26,6 +28,12 @@ const ProfileList = () => {
 
   const totalUsers = countUsers(profiles);
 
+  const goToCreate = () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    navigate("new");
+  };
+
   return (
     <Wrapper>
       <div className="bg-white p-4 rounded-md shadow">
@@ -33,13 +41,15 @@ const ProfileList = () => {
           <div className="flex items-center gap-2">
             <div className="flex flex-col">
               <h1 className="text-xl font-medium">Profiles</h1>
-              <p className="text-sm text-gray-500">Profiles allow you to assign permissions to different people</p>
+              <p className="text-sm text-gray-500">
+                Profiles allow you to assign permissions to different people
+              </p>
             </div>
           </div>
           <div>
             <div></div>
 
-            <Button onClick={() => navigate("new")}>Create profile</Button>
+            <Button disabled={isNavigating} onClick={goToCreate}>Create profile</Button>
           </div>
         </div>
       </div>

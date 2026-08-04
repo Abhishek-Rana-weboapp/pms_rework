@@ -20,6 +20,12 @@ export const ReportBuilderProvider = ({ children }) => {
       setAssociatedModule: (module) =>
         dispatch({ type: "SET_ASSOCIATED_MODULE", payload: module }),
 
+      setConfiguration: (configuration) =>
+        dispatch({
+          type: "SET_CONFIGURATION",
+          payload: configuration,
+        }),
+
       initializeConfiguration: ({
         columns = [],
         rowGroups = [],
@@ -66,6 +72,11 @@ export const ReportBuilderProvider = ({ children }) => {
 
       setReport: (report) =>
         dispatch({ type: "SET_REPORT", payload: report }),
+
+      setChart: (chart) =>
+        dispatch({ type: "SET_CHART", payload: chart }),
+
+      clearChart: () => dispatch({ type: "CLEAR_CHART" }),
 
       loadSavedReport: (report) =>
         dispatch({ type: "LOAD_SAVED_REPORT", payload: report }),

@@ -79,7 +79,7 @@ const Tiptap = ({
         // element styling; the leading classes are editor-surface only.
         class: cn(
           "px-3 py-2 text-sm outline-none scrollbar-thin",
-          editorClassName ?? "min-h-48",
+          editorClassName ?? "sm:min-h-48 min-h-24",
           RICH_TEXT_CLASS,
         ),
       },

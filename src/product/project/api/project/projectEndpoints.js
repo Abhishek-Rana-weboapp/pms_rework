@@ -27,6 +27,7 @@ export const getArtifactsList = async ({
   page,
   page_size,
   type,
+  developer,
 } = {}) => {
   if (!projectId) {
     throw new Error("projectId is required");
@@ -36,12 +37,27 @@ export const getArtifactsList = async ({
     ...(searchData && { search: searchData }),
     ...(filterStatus && { status: filterStatus }),
     ...(type && { task_type: type }),
+    ...(developer && { developer }),
     ...(page !== undefined && { page }),
     ...(page_size !== undefined && { page_size }),
   };
 
   const res = await api.get(`project/${projectId}/artifacts/`, { params });
   return res.data?.data;
+};
+
+// Hierarchical project timeline (Gantt). Params: view, search, artifact_type, status.
+// Shape: {
+//   view, range: { start_date, end_date },
+//   timeline: [
+//     { type: "SPRINT_INFO", sprints: [{ id, name, start_date, end_date, status }] },
+//     { id, type, name, start_date, end_date, status, children_data },
+//   ],
+// }
+export const getProjectTimeline = async (projectId, params = {}) => {
+  if (!projectId) throw new Error("projectId is required");
+  const res = await api.get(`project/${projectId}/timeline/`, { params });
+  return res.data?.data ?? {};
 };
 
 
@@ -103,6 +119,16 @@ export const getArtifactHistory = async ({ projectId, page = 1 }) => {
   const res = await api.get(`project/${projectId}/artifact-history/`, {
     params: { page },
   });
+  return res.data?.data ?? {};
+};
+
+
+
+// Project analytics payload (summary counts + chart series). Optional filters
+// map to query params (group_by, sprint, developer, task_type, status, dates).
+export const getProjectReport = async (projectId, params = {}) => {
+  if (!projectId) throw new Error("projectId is required");
+  const res = await api.get(`project/${projectId}/report/`, { params });
   return res.data?.data ?? {};
 };
 

@@ -1,12 +1,9 @@
-import DataTable from "@/shared/components/data-table/DataTable";
-import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
-import Wrapper from "@/shared/components/wrappers/Wrapper";
 import { useState } from "react";
-import {
-  useGlobalStatus,
-  usePriorities,
-  useProjectTypes,
-} from "../api/settingsQueries";
+
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
+import { useAuthPermissions } from "@/product/auth/hooks/useAuthPermissions";
+import DataTable from "@/shared/components/data-table/DataTable";
 import {
   getPriorityColumns,
   getProjectTypeColumns,
@@ -20,76 +17,74 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import Wrapper from "@/shared/components/wrappers/Wrapper";
+import {
+  useGlobalStatus,
+  usePriorities,
+  useProjectTypes,
+} from "../api/settingsQueries";
 import PriorityForm from "../components/PriorityForm";
 import ProjectTypeForm from "../components/ProjectTypeForm";
 import StatusForm from "../components/StatusForm";
 
 const MetaData = () => {
+  const { can } = useAuthPermissions();
   const [activeTab, setActiveTab] = useState("priority");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const {
-    data: priorities=[],
-    isLoading: isPrioritiesLoading,
-    error: priorityError,
-  } = usePriorities();
-  const {
-    data: projectTypes=[],
-    isLoading: isProjestTypesLoading,
-    error: projectTypeError,
-  } = useProjectTypes();
-  const {
-    data: statuses=[],
-    isLoading: isstatuesesLoading,
-    error: statusesError,
-  } = useGlobalStatus();
 
-  const editMetaData = (selectedItem) => {
-    setSelectedItem(selectedItem);
+  const { data: priorities = [] } = usePriorities();
+  const { data: projectTypes = [] } = useProjectTypes();
+  const { data: statuses = [] } = useGlobalStatus();
+
+  const editMetaData = (item) => {
+    setSelectedItem(item);
     setIsOpen(true);
-    return;
   };
 
-  // The React Compiler stabilises these column references across renders, so
-  // TanStack still gets a stable `columns` prop (avoids visibility/sort desync).
-  const priorityColumns = getPriorityColumns({
-    onEdit: editMetaData,
-    onDelete: () => {},
-  });
-  const statusColumns = getStatusColumns({
-    onEdit: editMetaData,
-    onDelete: () => {},
-  });
-  const projectTypeColumns = getProjectTypeColumns({
-    onEdit: editMetaData,
-    onDelete: () => {},
-  });
-
-  // Single source of truth per tab: its label, data, columns and form component.
-  // Adding a new metadata tab means adding one entry here — nothing else changes.
+  // Single source of truth per tab. Columns are built with that tab's
+  // edit/delete permission flags so the actions menu stays in sync.
   const TABS = {
     priority: {
       label: "Priority",
       data: priorities,
-      columns: priorityColumns,
       Form: PriorityForm,
+      getColumns: getPriorityColumns,
+      createPermission: PERMISSIONS.PRIORITY.ADD,
+      editPermission: PERMISSIONS.PRIORITY.CHANGE,
+      deletePermission: PERMISSIONS.PRIORITY.DELETE,
     },
     status: {
       label: "Status",
       data: statuses,
-      columns: statusColumns,
       Form: StatusForm,
+      getColumns: getStatusColumns,
+      createPermission: PERMISSIONS.ORGANIZATION_STATUS_TEMPLATE.ADD,
+      editPermission: PERMISSIONS.ORGANIZATION_STATUS_TEMPLATE.CHANGE,
+      deletePermission: PERMISSIONS.ORGANIZATION_STATUS_TEMPLATE.DELETE,
     },
     "project-type": {
       label: "Project type",
       data: projectTypes,
-      columns: projectTypeColumns,
       Form: ProjectTypeForm,
+      getColumns: getProjectTypeColumns,
+      createPermission: PERMISSIONS.PROJECT_TYPE.ADD,
+      editPermission: PERMISSIONS.PROJECT_TYPE.CHANGE,
+      deletePermission: PERMISSIONS.PROJECT_TYPE.DELETE,
     },
   };
 
   const current = TABS[activeTab];
   const CurrentForm = current.Form;
+
+  // React Compiler keeps this stable when deps don't change.
+  const columns = current.getColumns({
+    onEdit: editMetaData,
+    onDelete: () => {},
+    canEdit: can(current.editPermission),
+    canDelete: can(current.deletePermission),
+  });
 
   const closeDialog = () => {
     setIsOpen(false);
@@ -122,9 +117,11 @@ const MetaData = () => {
             onOpenChange={(open) => (open ? setIsOpen(true) : closeDialog())}
           >
             <DialogTrigger asChild>
-              <Button onClick={() => setSelectedItem(null)}>
-                Create {current.label}
-              </Button>
+              <PermissionGate permission={current.createPermission}>
+                <Button onClick={() => setSelectedItem(null)}>
+                  Create {current.label}
+                </Button>
+              </PermissionGate>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -146,7 +143,7 @@ const MetaData = () => {
 
       <div className="bg-white p-4 mt-5 shadow rounded-md">
         <DataTable
-          columns={current.columns}
+          columns={columns}
           data={current.data}
           enablePagination={false}
         />

@@ -14,8 +14,13 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { useGroupedReportTable } from "./useGroupedReportTable";
-import { buildTanStackColumns } from "./buildTanStackColumns";
+import { buildTanStackColumns } from "./buildTanStackColumns.jsx";
 import { isGroupedReport } from "./reportUtils";
+import {
+  getReportCellClassName,
+  ReportTableCellContent,
+  RICH_TEXT_COLUMN_CELL_CLASS,
+} from "./ReportTableCellContent";
 
 function getRowSpan(rows, rowIndex, field) {
   const currentRow = rows[rowIndex];
@@ -61,7 +66,8 @@ function PlainReportTable({ report }) {
           {report.columns?.map((column) => (
             <TableHead
               key={column.field ?? column.name}
-              className="whitespace-nowrap p-2 px-4 text-left font-medium text-gray-500 text-xs uppercase">
+              className="whitespace-nowrap p-2 px-4 text-left text-xs font-medium uppercase text-gray-500"
+            >
               {column.label}
             </TableHead>
           ))}
@@ -72,15 +78,14 @@ function PlainReportTable({ report }) {
         {report.rows?.map((row, rowIndex) => (
           <TableRow key={rowIndex}>
             {report.columns?.map((column) => {
-              const value = row[column.field] ?? row[column.name] ?? "-";
+              const value = row[column.field] ?? row[column.name] ?? null;
 
               return (
                 <TableCell
                   key={column.field ?? column.name}
-                  className="max-w-96 truncate whitespace-nowrap p-2 px-4 text-sm"
-                  title={value || "-"}
+                  className={getReportCellClassName(column, value)}
                 >
-                  {value || "-"}
+                  <ReportTableCellContent column={column} value={value} />
                 </TableCell>
               );
             })}
@@ -102,7 +107,7 @@ function GroupedReportTable({ tableModel, table }) {
           {rowGroupColumns.map((field) => (
             <TableHead
               key={field}
-              className="border-r border-b border-neutral-300 bg-gray-50 p-2 text-gray-500 text-sm uppercase text-left"
+              className="border-r border-b border-neutral-300 bg-gray-50 p-2 text-left text-xs uppercase text-gray-500"
             >
               {field.split("_").join(" ")}
             </TableHead>
@@ -112,7 +117,7 @@ function GroupedReportTable({ tableModel, table }) {
             ? columnHeaders.map((column) => (
                 <TableHead
                   key={column.key}
-                  className="border-r border-b border-neutral-300 bg-gray-50 p-2 text-gray-500 text-sm uppercase text-center"
+                  className="border-r border-b border-neutral-300 bg-gray-50 p-2 text-center text-xs uppercase text-gray-500"
                 >
                   {column.label}
                 </TableHead>
@@ -120,7 +125,7 @@ function GroupedReportTable({ tableModel, table }) {
             : dataColumns.map((column) => (
                 <TableHead
                   key={column.field}
-                  className="border-r border-b border-neutral-300 bg-gray-50 p-2 text-gray-500 text-sm uppercase text-left"
+                  className="border-r border-b border-neutral-300 bg-gray-50 p-2 text-left text-xs uppercase text-gray-500"
                 >
                   {column.label}
                 </TableHead>
@@ -157,16 +162,25 @@ function GroupedReportTable({ tableModel, table }) {
               })}
 
               {(showDataCells || showCountCells) &&
-                row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    className={`border border-neutral-300 p-2 text-sm ${
-                      showCountCells ? "text-center" : "text-left"
-                    }`}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                row.getVisibleCells().map((cell) => {
+                  const isRichText = cell.column.columnDef.meta?.isRichText;
+
+                  return (
+                    <TableCell
+                      key={cell.id}
+                      className={`border border-neutral-300 text-sm ${
+                        isRichText
+                          ? RICH_TEXT_COLUMN_CELL_CLASS
+                          : "p-2 text-left"
+                      } ${showCountCells ? "text-center" : "text-left"}`}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  );
+                })}
             </TableRow>
           );
         })}
@@ -194,7 +208,7 @@ export default function ReportTableTanStack({ report }) {
 
   return (
     <div className="w-full overflow-hidden rounded-md border border-neutral-300">
-      <Table className="min-w-max w-full border-collapse">
+      <Table className="w-full min-w-max border-collapse">
         {isGrouped ? (
           <GroupedReportTable tableModel={tableModel} table={table} />
         ) : (

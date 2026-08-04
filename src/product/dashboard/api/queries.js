@@ -1,6 +1,6 @@
 import { queryKeys } from "@/shared/services/api/queryKeys"
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import { getAllClients, getAllEmployees, getAssociatedModule, getDashboard, getPrimaryModules, getProjects, getReports, getSavedReport } from "./endpoints"
+import { keepPreviousData, useQueries, useQuery } from "@tanstack/react-query"
+import { getAllClients, getAllEmployees, getAssociatedModule, getDashboard, getPrimaryModules, getProjects, getReportChart, getReportConfiguration, getReports, getSavedReport } from "./endpoints"
 
 
 /**
@@ -112,5 +112,34 @@ export const useSavedReport = (reportId, options = {}) => {
     queryFn: () => getSavedReport(reportId),
     enabled: !!reportId,
     ...options,
+  });
+};
+
+export const useReportConfiguration = (
+  mainModule,
+  associatedModule,
+  options = {},
+) => {
+  const { enabled = true, ...rest } = options;
+
+  return useQuery({
+    queryKey: queryKeys.reports.configuration(mainModule, associatedModule),
+    queryFn: () => getReportConfiguration(mainModule, associatedModule),
+    enabled: Boolean(mainModule) && enabled,
+    ...rest,
+  });
+};
+
+/**
+ * Fetch full chart payloads for dashboard chart stubs (`dashboard_charts`).
+ */
+export const useDashboardCharts = (charts = []) => {
+  return useQueries({
+    queries: charts.map((chart) => ({
+      queryKey: queryKeys.reports.chart(chart.id),
+      queryFn: () => getReportChart(chart.id),
+      enabled: Boolean(chart?.id),
+      retry: 1,
+    })),
   });
 };

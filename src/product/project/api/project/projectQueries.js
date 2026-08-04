@@ -6,7 +6,9 @@ import {
   getArtifactsList,
   getBoards,
   getProject,
+  getProjectReport,
   getProjectStatuses,
+  getProjectTimeline,
 } from "./projectEndpoints"
 
 export const useProject = (projectId, options={})=>{
@@ -24,7 +26,7 @@ export const useCurrentProject = (options = {}) => {
 
 
 export const useArtifacts = (
-  { searchData, filterStatus, page = 1, page_size = 10, type } = {},
+  { searchData, filterStatus, page = 1, page_size = 10, type, developer } = {},
   options = {}
 ) => {
   const { projectId } = useParams();
@@ -32,7 +34,7 @@ export const useArtifacts = (
   // `type` (task_type) is a query param like search/status/page, so it's just
   // another filter — it lives in `filters`, which already makes each type its own
   // cache entry and triggers a refetch when it changes.
-  const filters = { searchData, filterStatus, page, page_size, type };
+  const filters = { searchData, filterStatus, page, page_size, type, developer };
 
   return useQuery({
     queryKey: queryKeys.artifacts.list(projectId, filters),
@@ -84,6 +86,29 @@ export const useArtifactHistory = (options = {}) => {
       if (!pagination?.next) return undefined;
       return (pagination.current_page || 1) + 1;
     },
+    ...options,
+  });
+};
+
+
+export const useProjectReport = (filters = {}, options = {}) => {
+  const { projectId } = useParams();
+  return useQuery({
+    queryKey: queryKeys.projects.report(projectId, filters),
+    queryFn: () => getProjectReport(projectId, filters),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  });
+};
+
+export const useProjectTimeline = (filters = {}, options = {}) => {
+  const { projectId } = useParams();
+  return useQuery({
+    queryKey: queryKeys.projects.timeline(projectId, filters),
+    queryFn: () => getProjectTimeline(projectId, filters),
+    enabled: !!projectId,
+    placeholderData: keepPreviousData,
     ...options,
   });
 };

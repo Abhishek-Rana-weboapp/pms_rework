@@ -151,7 +151,7 @@ const MenuBar = ({ editor }) => {
         aria-label="Formatting"
         aria-orientation="horizontal"
         onKeyDown={handleKeyDown}
-        className="flex flex-wrap items-center gap-0.5 rounded-t-md border border-input bg-muted/40 px-2 py-1"
+        className="flex flex-nowrap items-center gap-0.5 overflow-x-auto rounded-t-md border border-input bg-muted/40 px-2 py-1 scrollbar-thin [&>*]:shrink-0 sm:flex-wrap sm:overflow-x-visible"
       >
         <ToolbarButton
           label="Bold"

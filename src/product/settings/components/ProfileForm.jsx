@@ -325,6 +325,7 @@ const ProfileForm = () => {
                 <Input
                   id="profile_name"
                   placeholder="e.g. Regional Manager"
+                  className={"max-sm:placeholder:text-sm text-sm sm:text-base"}
                   {...register("profile_name")}
                 />
 
@@ -339,6 +340,7 @@ const ProfileForm = () => {
                 <Input
                   id="description"
                   placeholder="Briefly describe what this profile can do"
+                  className={"max-sm:placeholder:text-sm text-sm sm:text-base"}
                   {...register("description")}
                 />
 
@@ -353,8 +355,10 @@ const ProfileForm = () => {
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <h2 className="font-semibold">Permissions</h2>
-                <Badge variant="secondary">{modules.length} modules</Badge>
+                <div className="flex sm:items-center items-start flex-col sm:flex-row sm:gap-2 gap-1" >
+                  <h2 className="font-semibold">Permissions</h2>
+                  <Badge variant="secondary" className={"max-sm:p-0"}>{modules.length} modules</Badge>
+                </div>
                 {errors.permission_ids && (
                   <span className="text-sm text-destructive">
                     {errors.permission_ids.message}
@@ -365,12 +369,11 @@ const ProfileForm = () => {
               <div className="flex flex-wrap items-center gap-2">
                 <div className="relative bg-white">
                   <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-
                   <Input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search permissions"
-                    className="w-56 pl-8"
+                    className="sm:w-56 w-32 pl-8 max-sm:placeholder:text-sm text-sm sm:text-base"
                   />
                 </div>
 

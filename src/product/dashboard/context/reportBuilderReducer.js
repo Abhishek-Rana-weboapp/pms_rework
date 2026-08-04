@@ -19,7 +19,9 @@ export const reportBuilderReducer = (state, action) => {
           columnGroups: [],
           filters: [],
         },
+        configuration: initialReportBuilderState.configuration,
         report: null,
+        chart: null,
       };
 
     case "SET_ASSOCIATED_MODULE":
@@ -35,7 +37,21 @@ export const reportBuilderReducer = (state, action) => {
           columnGroups: [],
           filters: [],
         },
+        configuration: initialReportBuilderState.configuration,
         report: null,
+        chart: null,
+      };
+
+    case "SET_CONFIGURATION":
+      return {
+        ...state,
+        configuration: {
+          columns: action.payload.columns ?? [],
+          filters: action.payload.filters ?? [],
+          rowGroups: action.payload.rowGroups ?? [],
+          columnGroups: action.payload.columnGroups ?? [],
+          aggregateColumns: action.payload.aggregateColumns ?? [],
+        },
       };
 
     case "INITIALIZE_CONFIGURATION":
@@ -180,6 +196,18 @@ export const reportBuilderReducer = (state, action) => {
         report: action.payload,
       };
 
+    case "SET_CHART":
+      return {
+        ...state,
+        chart: action.payload,
+      };
+
+    case "CLEAR_CHART":
+      return {
+        ...state,
+        chart: null,
+      };
+
     case "LOAD_SAVED_REPORT": {
       const payload = action.payload ?? {};
 
@@ -193,6 +221,7 @@ export const reportBuilderReducer = (state, action) => {
         },
         selections: extractReportConfiguration(payload),
         report: normalizeReportPayload(payload),
+        chart: payload.chart ?? null,
         save: {
           name: payload.report_name ?? "",
           description: payload.description ?? "",
@@ -242,10 +271,6 @@ export const reportBuilderReducer = (state, action) => {
         ui: {
           ...state.ui,
           isSaveModalOpen: false,
-        },
-        save: {
-          name: "",
-          description: "",
         },
       };
 

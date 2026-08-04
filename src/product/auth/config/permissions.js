@@ -1,10 +1,10 @@
 /**
  * Hardcoded UI permission keys → backend permission catalog codenames.
  * Source: `GET permissions/` (grouped by module). Compare against
- * `userprofile.user_permissions` (string[]) via `hasPermission` / `usePermission`.
+ * `userprofile.user_permissions` (string[]) via `hasPermission` / `useAuthPermissions`.
  *
- *   usePermission(PERMISSIONS.USER.CHANGE)
- *   hasPermission(permissions, PERMISSIONS.ARTIFACT.VIEW)
+ *   const { can } = useAuthPermissions();
+ *   can(PERMISSIONS.USER.CHANGE)
  */
 export const PERMISSIONS = {
   ARTIFACT: {
@@ -203,23 +203,32 @@ export const PERMISSIONS = {
   },
 };
 
+/** Stable empty references so logged-out / loading renders don't churn identity. */
+export const EMPTY_PERMISSIONS = Object.freeze([]);
+export const EMPTY_PERMISSION_SET = new Set();
+
 /**
- * Build a Set of codenames from `user_permissions`
- * (string[] from userprofile API).
+ * Normalize `user_permissions` (string[] or Set) into a Set for O(1) lookups.
+ * Passes Set instances through; returns EMPTY_PERMISSION_SET for empty input.
  */
-const toCodenameSet = (userPermissions) => {
+export const toPermissionSet = (userPermissions) => {
+  if (userPermissions instanceof Set) {
+    return userPermissions.size === 0 ? EMPTY_PERMISSION_SET : userPermissions;
+  }
+  if (!userPermissions?.length) return EMPTY_PERMISSION_SET;
+
   const set = new Set();
-  for (const entry of userPermissions ?? []) {
+  for (const entry of userPermissions) {
     if (typeof entry === "string") set.add(entry);
   }
-  return set;
+  return set.size === 0 ? EMPTY_PERMISSION_SET : set;
 };
 
 /** True when the user has every listed permission (AND). */
 export const hasPermission = (userPermissions, required) => {
   if (required == null || required === "") return true;
 
-  const owned = toCodenameSet(userPermissions);
+  const owned = toPermissionSet(userPermissions);
   const needed = Array.isArray(required) ? required : [required];
   if (needed.length === 0) return true;
 
@@ -230,7 +239,7 @@ export const hasPermission = (userPermissions, required) => {
 export const hasAnyPermission = (userPermissions, required) => {
   if (required == null || required === "") return true;
 
-  const owned = toCodenameSet(userPermissions);
+  const owned = toPermissionSet(userPermissions);
   const needed = Array.isArray(required) ? required : [required];
   if (needed.length === 0) return true;
 

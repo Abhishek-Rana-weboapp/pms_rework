@@ -3,6 +3,7 @@ import { cn } from "@/shared/lib/utils";
 import { Spinner } from "@/shared/components/ui/spinner";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import NotificationItem from "./NotificationItem";
+import { useNavigate, useParams } from "react-router-dom";
 
 const CountPill = ({ children }) => (
   <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-muted-foreground/15 px-1 text-[10px] font-semibold text-muted-foreground">
@@ -13,6 +14,13 @@ const CountPill = ({ children }) => (
 // The shared body used inside both the desktop Sheet and the mobile Drawer:
 // tab switcher, the count / "mark all as read" bar, and the scrollable list.
 const NotificationPanel = ({ filtered, tab, setTab, counts, markAllRead, markRead, isLoading, isError }) => {
+  const { orgUuid } = useParams();
+  const navigate = useNavigate();
+  const handleClick = (notification) =>{
+    if(notification.notification_type === "mention_comment"){
+      navigate(`/${orgUuid}/projects/${notification.project_details.id}/artifacts/${notification.timelog_id}`);
+    }
+  }
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="px-4 pt-3">

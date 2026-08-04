@@ -161,7 +161,7 @@ export const getDefaultStatusId = (statuses = []) => {
   const byName = statuses.find(
     (s) => (s.status_name || "").trim().toLowerCase() === "to do",
   );
-  return (byCategory ?? byName ?? statuses[0])?.id ?? "";
+  return (byName ?? byCategory ?? statuses[0])?.id ?? "";
 };
 
 /**

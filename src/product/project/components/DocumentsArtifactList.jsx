@@ -16,7 +16,7 @@ import {
 } from "@/shared/lib/helpers";
 import { cn } from "@/shared/lib/utils";
 import { useArtifacts } from "../api/project/projectQueries";
-import { getArtifactConfig } from "../config/artifacts/artifactConfig";
+import { getArtifactConfig, humanize } from "../config/artifacts/artifactConfig";
 
 const PAGE_SIZE = 10;
 
@@ -65,7 +65,7 @@ const DocumentsArtifactList = ({ type, selectedArtifactId, onSelect }) => {
           <Input
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Search documents..."
+            placeholder={`Search ${humanize(type)}...`}
             className="pl-8"
           />
         </div>

@@ -1,3 +1,5 @@
+import { Check } from "lucide-react";
+import { Input } from "@/shared/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -7,126 +9,97 @@ import {
 } from "@/shared/components/ui/select";
 import { useReportBuilder } from "../../context/ReportBuilderContext";
 
+function formatOperator(operator) {
+  return operator
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 const FilterSection = ({ filters = [] }) => {
   const { state, actions } = useReportBuilder();
-
   const selectedFilters = state.selections.filters;
 
   const handleCheckbox = (event) => {
     const { value, checked } = event.target;
-
     actions.toggleFilter(value, checked);
   };
 
-  const handleOperatorChange = (field, operator) => {
-    actions.setFilterOperator(field, operator);
-  };
-
-  const handleValueChange = (field, value) => {
-    actions.setFilterValue(field, value);
-  };
+  if (!filters.length) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        No filters available for the selected modules.
+      </p>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-5">
       {filters.map((filter) => {
         const selectedFilter = selectedFilters.find(
-          (selected) =>
-            selected.field === filter.field,
+          (selected) => selected.field === filter.field,
         );
-
         const isSelected = Boolean(selectedFilter);
 
         return (
-          <div
-            key={filter.field}
-            className="flex items-start gap-2"
-          >
-            {/* Checkbox */}
-            <input
-              type="checkbox"
-              id={filter.field}
-              value={filter.field}
-              checked={isSelected}
-              onChange={handleCheckbox}
-              className="
-                relative
-                mt-1
-                h-4
-                w-4
-                cursor-pointer
-                appearance-none
-                rounded
-                border
-                border-gray-400
-                bg-white
+          <div key={filter.field} className="flex flex-col gap-2">
+            <label
+              htmlFor={`filter-${filter.field}`}
+              className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium"
+            >
+              <span className="relative inline-flex size-4 shrink-0 items-center justify-center">
+                <input
+                  type="checkbox"
+                  id={`filter-${filter.field}`}
+                  value={filter.field}
+                  checked={isSelected}
+                  onChange={handleCheckbox}
+                  className="absolute inset-0 z-10 cursor-pointer opacity-0"
+                />
+                <span
+                  className={`pointer-events-none flex size-4 items-center justify-center rounded border ${
+                    isSelected
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-gray-400 bg-white"
+                  }`}
+                >
+                  {isSelected ? (
+                    <Check className="size-3" strokeWidth={3} />
+                  ) : null}
+                </span>
+              </span>
+              {filter.label}
+            </label>
 
-                checked:border-blue-600
-                checked:bg-blue-600
+            <Select
+              value={selectedFilter?.operator || undefined}
+              onValueChange={(operator) =>
+                actions.setFilterOperator(filter.field, operator)
+              }
+              disabled={!isSelected}
+            >
+              <SelectTrigger className="w-full bg-muted/40 text-sm">
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent>
+                {(filter.operators ?? []).map((operator) => (
+                  <SelectItem key={operator} value={operator}>
+                    {formatOperator(operator)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-                checked:after:absolute
-                checked:after:inset-0
-                checked:after:flex
-                checked:after:items-center
-                checked:after:justify-center
-                checked:after:text-xs
-                checked:after:text-white
-              "
+            <Input
+              type="text"
+              placeholder="Enter Value"
+              disabled={!isSelected}
+              value={selectedFilter?.value ?? ""}
+              onChange={(event) =>
+                actions.setFilterValue(filter.field, event.target.value)
+              }
+              className="text-sm"
             />
-
-            <div className="flex w-full flex-col gap-2">
-              {/* Filter Label */}
-              <label
-                htmlFor={filter.field}
-                className="cursor-pointer select-none text-sm"
-              >
-                {filter.label}
-              </label>
-
-              {/* Operator */}
-              <Select
-                value={selectedFilter?.operator ?? ""}
-                onValueChange={(operator) =>
-                  handleOperatorChange(
-                    filter.field,
-                    operator,
-                  )
-                }
-                disabled={!isSelected}
-              >
-                <SelectTrigger className="w-full text-sm">
-                  <SelectValue placeholder="Select operator" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {filter.operators.map((operator) => (
-                    <SelectItem
-                      key={operator}
-                      value={operator}
-                    >
-                      {operator
-                        .split("_")
-                        .join(" ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Value */}
-              <input
-                type="text"
-                placeholder="Enter Value"
-                disabled={!isSelected}
-                value={selectedFilter?.value ?? ""}
-                onChange={(event) =>
-                  handleValueChange(
-                    filter.field,
-                    event.target.value,
-                  )
-                }
-                className="rounded-md border border-neutral-300 p-1.5"
-              />
-            </div>
           </div>
         );
       })}

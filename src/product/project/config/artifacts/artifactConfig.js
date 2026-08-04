@@ -1,3 +1,4 @@
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 import {
   buildArtifactColumns,
   DEFAULT_ARTIFACT_COLUMNS,
@@ -11,6 +12,14 @@ export const humanize = (type = "") =>
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 
+/** Shared across every artifact type — override per type only if RBAC ever diverges. */
+const ARTIFACT_PERMISSIONS = {
+  permission: PERMISSIONS.ARTIFACT.VIEW,
+  addPermission: PERMISSIONS.ARTIFACT.ADD,
+  editPermission: PERMISSIONS.ARTIFACT.CHANGE,
+  deletePermission: PERMISSIONS.ARTIFACT.DELETE,
+};
+
 /**
  * Per-artifact-type configuration, keyed by the UPPERCASE backend `task_type`.
  *
@@ -22,15 +31,13 @@ export const humanize = (type = "") =>
  *                           is pure config. `deps` (onEdit, onDelete, …) is
  *                           forwarded to builders that need handlers.
  * - `emptyMessage`        — empty-state copy.
- * - `permission`          — reserved for RBAC (nothing reads it yet). When
- *                           permissions land, the page gate + tab visibility
- *                           read this single field. Keep it in sync per type.
+ *
+ * Permissions come from `ARTIFACT_PERMISSIONS` via `getArtifactConfig`.
  */
 export const artifactConfig = {
   EPIC: {
     label: "Epic",
     addLabel: "Add Epic",
-    permission: "",
     columns: (deps) =>
       buildArtifactColumns([...DEFAULT_ARTIFACT_COLUMNS, "priority", "actions"], {
         titleHeader: "Epic Title",
@@ -41,7 +48,6 @@ export const artifactConfig = {
   USER_STORY: {
     label: "User Story",
     addLabel: "Add Story",
-    permission: "",
     // Different order + an extra column, all from config: story points sit right
     // after the title, project moves after developer.
     columns: (deps) =>
@@ -54,7 +60,6 @@ export const artifactConfig = {
   TASK: {
     label: "Task",
     addLabel: "Add Task",
-    permission: "",
     columns: (deps) =>
       buildArtifactColumns(DEFAULT_ARTIFACT_COLUMNS, {
         titleHeader: "Task Title",
@@ -65,7 +70,6 @@ export const artifactConfig = {
   SPIKE: {
     label: "Spike",
     addLabel: "Add Spike",
-    permission: "",
     columns: (deps) =>
       buildArtifactColumns(DEFAULT_ARTIFACT_COLUMNS, {
         titleHeader: "Spike Title",
@@ -76,7 +80,6 @@ export const artifactConfig = {
   ISSUE: {
     label: "Issue",
     addLabel: "Add Issue",
-    permission: "",
     columns: (deps) =>
       buildArtifactColumns(DEFAULT_ARTIFACT_COLUMNS, {
         titleHeader: "Issue Title",
@@ -87,7 +90,6 @@ export const artifactConfig = {
   TEST: {
     label: "Test",
     addLabel: "Add Test",
-    permission: "",
     columns: (deps) =>
       buildArtifactColumns(DEFAULT_ARTIFACT_COLUMNS, {
         titleHeader: "Test Title",
@@ -101,25 +103,20 @@ export const artifactConfig = {
  * Resolves the config for a route artifact type. `type` is the lowercase route
  * segment (e.g. "user_story"); it's uppercased to match the backend task_type.
  * Types not yet configured fall back to the default columns so the page renders
- * instead of crashing.
+ * instead of crashing. Shared permissions are always merged in.
  */
 export const getArtifactConfig = (type = "") => {
   const key = type.toUpperCase();
-  return (
-    artifactConfig[key] ?? {
-      label: humanize(type),
-      addLabel: `Add ${humanize(type)}`,
-      permission: "",
-      columns: (deps) =>
-        buildArtifactColumns(DEFAULT_ARTIFACT_COLUMNS, {
-          titleHeader: "Title",
-          ...deps,
-        }),
-      emptyMessage: "No artifacts yet.",
-    }
-  );
+  const typeConfig = artifactConfig[key] ?? {
+    label: humanize(type),
+    addLabel: `Add ${humanize(type)}`,
+    columns: (deps) =>
+      buildArtifactColumns(DEFAULT_ARTIFACT_COLUMNS, {
+        titleHeader: "Title",
+        ...deps,
+      }),
+    emptyMessage: "No artifacts yet.",
+  };
+
+  return { ...ARTIFACT_PERMISSIONS, ...typeConfig };
 };
-
-
-
-

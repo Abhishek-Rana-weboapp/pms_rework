@@ -1,0 +1,92 @@
+.timeline-gantt .wx-gantt .wx-bar.wx-task.SPRINT,
+.timeline-gantt .wx-gantt .wx-bar.wx-summary.SPRINT {
+  background-color: #6366f1;
+  border-color: #4f46e5;
+}
+
+.timeline-gantt .wx-gantt .wx-bar.wx-summary:not([class*="EPIC"]):not([class*="USER_STORY"]):not([class*="TASK"]):not([class*="SPRINT"]) {
+  background-color: #c7d2fe;
+  border-color: #818cf8;
+}
+
+.timeline-gantt .wx-gantt .wx-bar.wx-task.EPIC,
+.timeline-gantt .wx-gantt .wx-bar.wx-summary.EPIC {
+  background-color: #a78bfa;
+  border-color: #8b5cf6;
+}
+
+.timeline-gantt .wx-gantt .wx-bar.wx-task.USER_STORY,
+.timeline-gantt .wx-gantt .wx-bar.wx-summary.USER_STORY {
+  background-color: #38bdf8;
+  border-color: #0ea5e9;
+}
+
+.timeline-gantt .wx-gantt .wx-bar.wx-task.TASK,
+.timeline-gantt .wx-gantt .wx-bar.wx-summary.TASK {
+  background-color: #34d399;
+  border-color: #10b981;
+}
+
+.timeline-gantt .wx-gantt .wx-bar.wx-task.TEST,
+.timeline-gantt .wx-gantt .wx-bar.wx-summary.TEST {
+  background-color: #fbbf24;
+  border-color: #f59e0b;
+}
+
+.timeline-gantt .wx-gantt .wx-bar.wx-task.ISSUE,
+.timeline-gantt .wx-gantt .wx-bar.wx-summary.ISSUE {
+  background-color: #fb7185;
+  border-color: #f43f5e;
+}
+
+.timeline-gantt .wx-gantt .wx-bar.wx-task.SPIKE,
+.timeline-gantt .wx-gantt .wx-bar.wx-summary.SPIKE {
+  background-color: #a3e635;
+  border-color: #84cc16;
+}
+
+.timeline-gantt .wx-gantt .wx-bar {
+  border-radius: 8px;
+  border-width: 0;
+}
+
+.timeline-gantt .gantt-today-cell {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  color: #dc2626 !important;
+  font-weight: 700;
+}
+
+/* SVAR needs an unbroken height chain: shell → theme → gantt */
+.timeline-gantt {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.timeline-gantt > .wx-theme,
+.timeline-gantt .wx-willow-theme {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+
+.timeline-gantt .wx-gantt {
+  border: none;
+  flex: 1 1 auto;
+  height: 100% !important;
+  min-height: 0;
+  /* SVAR scrolls rows itself — keep vertical scroll enabled */
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.timeline-gantt .wx-layout {
+  height: 100%;
+  min-height: 0;
+}

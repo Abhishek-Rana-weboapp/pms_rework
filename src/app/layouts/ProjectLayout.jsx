@@ -1,3 +1,6 @@
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
+import { useAuthPermissions } from "@/product/auth/hooks/useAuthPermissions";
 import { useCurrentProject } from "@/product/project/api/project/projectQueries";
 import ProjectTabs from "@/product/project/components/ProjectTabs";
 import { ArtifactFormDialogProvider } from "@/product/project/context/ArtifactFormDialogContext";
@@ -14,12 +17,12 @@ import { Progress } from "@/shared/components/ui/progress";
 import { Spinner } from "@/shared/components/ui/spinner";
 import { ArrowLeft, MoreHorizontalIcon, Pencil } from "lucide-react";
 import { Suspense } from "react";
-import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
 
 const ProjectLayout = () => {
   const { orgUuid } = useParams();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { can } = useAuthPermissions();
   const {
     data: projectData,
     isLoading: projectLoading,
@@ -39,51 +42,50 @@ const ProjectLayout = () => {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <div className="shrink-0 bg-white p-4">
-        <button
-          className="cursor-pointer flex mb-2 items-center text-gray-500"
-          onClick={() => {
-            navigate(`/${orgUuid}/projects`);
-          }}
-        >
-          <ArrowLeft className="md:size-4 size-3 " />
-          <span className="text-xs">All Projects</span>
-        </button>
-        <div className="flex justify-between sm:items-center items-start mb-2">
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center items-start gap-2">
-            <h2 className="sm:text-xl font-semibold">
+        <div className="mb-2 flex items-start justify-between sm:items-center">
+          <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+            <button
+              className="flex cursor-pointer items-center text-gray-500"
+              onClick={() => {
+                navigate(`/${orgUuid}/projects`);
+              }}
+            >
+              <ArrowLeft className="size-3 md:size-4" />
+            </button>
+            <h2 className="font-semibold sm:text-lg">
               {projectData.project_name}
             </h2>
             <Badge>{projectData.project_status}</Badge>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="text-sm flex items-center gap-2">
+            <div className="flex items-center gap-2 text-sm">
               <Progress
                 value={projectData.project_progress}
-                className={"sm:w-44 w-20 h-2.5"}
+                className="h-2.5 w-20 sm:w-44"
               />
               {Number(projectData.project_progress).toFixed(0)}%
             </div>
 
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger
-                className={
-                  "p-2 rounded-lg border border-neutral-300 cursor-pointer"
-                }
-              >
-                <MoreHorizontalIcon className="md:size-4 size-3" />
-              </DropdownMenuTrigger>
+            {can(PERMISSIONS.PROJECT.CHANGE) && (
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger className="cursor-pointer rounded-lg border border-neutral-300 p-2">
+                  <MoreHorizontalIcon className="size-3 md:size-4" />
+                </DropdownMenuTrigger>
 
-              <DropdownMenuContent>
-                <DropdownMenuItem
-                  onClick={() => openEdit(projectData)}
-                  className={"flex items-center text-gray-600 cursor-pointer"}
-                >
-                  <Pencil />
-                  Edit Project
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <DropdownMenuContent>
+                  <PermissionGate permission={PERMISSIONS.PROJECT.CHANGE}>
+                    <DropdownMenuItem
+                      onClick={() => openEdit(projectData)}
+                      className="flex cursor-pointer items-center text-gray-600"
+                    >
+                      <Pencil />
+                      Edit Project
+                    </DropdownMenuItem>
+                  </PermissionGate>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
         <ProjectTabs />
@@ -92,14 +94,13 @@ const ProjectLayout = () => {
         <SprintFormDialogProvider>
           <ArtifactFormDialogProvider>
             <Suspense
-              // key={pathname}
               fallback={
-                <div className="flex justify-center items-center">
+                <div className="flex items-center justify-center">
                   <Spinner />
                 </div>
               }
             >
-            <Outlet />
+              <Outlet />
             </Suspense>
           </ArtifactFormDialogProvider>
         </SprintFormDialogProvider>
