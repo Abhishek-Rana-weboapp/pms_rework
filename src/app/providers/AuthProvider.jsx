@@ -4,6 +4,13 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { AuthContext } from "./AuthContext";
 import { useCurrentUser } from "@/product/auth/api/authQueries";
+import {
+  EMPTY_PERMISSIONS,
+  EMPTY_PERMISSION_SET,
+  hasAnyPermission,
+  hasPermission,
+  toPermissionSet,
+} from "@/product/auth/config/permissions";
 import { refreshAccessToken } from "@/shared/services/api/refresh";
 import { setAccessToken, clearAccessToken } from "@/shared/services/api/authToken";
 import { onAuthLogout } from "@/shared/services/api/authEvents";
@@ -40,6 +47,11 @@ const AuthProvider = ({ children }) => {
   // user acknowledges — ProtectedRoute holds the redirect until then.
   const [sessionExpiredOpen, setSessionExpiredOpen] = useState(false);
   const sessionExpiredRef = useRef(false);
+  // Rebuild the Set only when the source `user_permissions` array identity changes.
+  const permissionCacheRef = useRef({
+    source: EMPTY_PERMISSIONS,
+    set: EMPTY_PERMISSION_SET,
+  });
 
   // Only fetch the profile once we know the session is valid.
   const { data: user } = useCurrentUser(
@@ -129,13 +141,32 @@ const AuthProvider = ({ children }) => {
 
   // Permissions come only from the authoritative server profile — never trusted
   // from client storage (the backend enforces authorization regardless).
-  const permissions = user?.user_permissions ?? user?.permissions ?? [];
+  // EMPTY_* keep stable identities while logged out / before the profile lands.
+  // Cache the Set against the source array identity so consumers don't see a
+  // new permissionSet (and re-render) on every AuthProvider render.
+  const permissions = user?.user_permissions ?? EMPTY_PERMISSIONS;
+  if (permissionCacheRef.current.source !== permissions) {
+    permissionCacheRef.current = {
+      source: permissions,
+      set:
+        permissions === EMPTY_PERMISSIONS
+          ? EMPTY_PERMISSION_SET
+          : toPermissionSet(permissions),
+    };
+  }
+  const permissionSet = permissionCacheRef.current.set;
+
+  const can = (required) => hasPermission(permissionSet, required);
+  const canAny = (required) => hasAnyPermission(permissionSet, required);
 
   const value = {
     status,
     userId,
     user: user ?? null,
     permissions,
+    permissionSet,
+    can,
+    canAny,
     isAuthenticated: status === STATUS.AUTHENTICATED,
     isLoading: status === STATUS.LOADING,
     sessionExpired: sessionExpiredOpen,

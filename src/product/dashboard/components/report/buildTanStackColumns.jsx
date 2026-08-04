@@ -1,5 +1,8 @@
 import { createColumnHelper } from "@tanstack/react-table";
 
+import { ReportTableCellContent } from "./ReportTableCellContent";
+import { shouldRenderRichTextCell } from "./reportUtils";
+
 const columnHelper = createColumnHelper();
 
 /**
@@ -25,8 +28,15 @@ export function buildTanStackColumns(tableModel) {
     columnHelper.accessor((row) => row.row?.[column.field] ?? "", {
       id: column.field,
       header: column.label,
-      cell: (info) => info.getValue(),
-      meta: { align: "left", mode: "data" },
+      cell: (info) => {
+        const value = info.getValue();
+        return <ReportTableCellContent column={column} value={value} />;
+      },
+      meta: {
+        align: "left",
+        mode: "data",
+        isRichText: shouldRenderRichTextCell(column),
+      },
     }),
   );
 }

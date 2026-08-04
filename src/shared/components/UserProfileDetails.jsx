@@ -1,9 +1,12 @@
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+
 import { useCurrentUser } from "@/product/auth/api/authQueries";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 import { Button } from "@/shared/components/ui/button";
 import { Spinner } from "@/shared/components/ui/spinner";
 import Wrapper from "@/shared/components/wrappers/Wrapper";
-import { ArrowLeft } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
 
 // Shared profile detail view. Users, employees and clients are all the same
 // userprofile record in our design, so this single component backs all three
@@ -37,21 +40,13 @@ const UserProfileDetails = ({ userId }) => {
           User Profile
         </h2>
         <div className="flex items-center gap-2">
-          {/* <PermissionGate permission={action?.permission}> */}
-          {/* {action && ( */}
-          <Button
-            variant="outline"
-            // variant={action.variant}
-            // onClick={() => action.handler(userData)}
-          >
-            re-invite
-            {/* {action.label} */}
-          </Button>
-          {/* )} */}
-          {/* </PermissionGate> */}
+          <PermissionGate permission={PERMISSIONS.USER.REINVITE}>
+            <Button variant="outline">Re-invite</Button>
+          </PermissionGate>
 
-          {/* <PermissionGate permission={PERMISSIONS.USER.CHANGE}> */}
-          <Button onClick={goToEdit}>Edit Profile</Button>
+          <PermissionGate permission={PERMISSIONS.USER.CHANGE}>
+            <Button onClick={goToEdit}>Edit Profile</Button>
+          </PermissionGate>
         </div>
       </div>
 

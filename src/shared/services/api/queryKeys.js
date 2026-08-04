@@ -42,6 +42,18 @@ export const queryKeys = {
     detail: (id) => [...queryKeys.projects.details(), id],
     // Infinite artifact-activity feed for a project (History tab).
     history: (projectId) => [...queryKeys.projects.all, "history", projectId],
+    report: (projectId, filters) => [
+      ...queryKeys.projects.all,
+      "report",
+      projectId,
+      filters ?? {},
+    ],
+    timeline: (projectId, filters) => [
+      ...queryKeys.projects.all,
+      "timeline",
+      projectId,
+      filters ?? {},
+    ],
   },
 
   reports: {
@@ -56,7 +68,13 @@ export const queryKeys = {
       "associate-module",
       mainModule,
     ],
-    configuration: () => [...queryKeys.reports.all, "configuration"],
+    configuration: (mainModule, associatedModule) => [
+      ...queryKeys.reports.all,
+      "configuration",
+      mainModule,
+      associatedModule ?? null,
+    ],
+    chart: (chartId) => [...queryKeys.reports.all, "chart", chartId],
   },
 
   artifacts: {

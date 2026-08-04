@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 
+import { useAuthPermissions } from "@/product/auth/hooks/useAuthPermissions";
 import { useLocalStorage } from "@/shared/hooks/useLocalStorage";
 import { projectTabsData } from "../config/ProjectTabsData";
 
@@ -14,6 +15,9 @@ import { projectTabsData } from "../config/ProjectTabsData";
  *
  * Storage shape: `{ order: string[], hidden: string[] }`. Older saves that were
  * a bare id array are still accepted and treated as order-only.
+ *
+ * Permission filtering runs before preference visibility: a tab the user cannot
+ * access never appears in the strip or customize menu.
  */
 const emptyPrefs = () => ({ order: [], hidden: [] });
 
@@ -28,9 +32,9 @@ const normalizePrefs = (raw) => {
   return emptyPrefs();
 };
 
-/** Apply a saved id list to `projectTabsData`, dropping unknowns and appending new tabs. */
-const reconcileOrder = (orderIds) => {
-  const tabById = new Map(projectTabsData.map((tab) => [tab.id, tab]));
+/** Apply a saved id list to allowed tabs, dropping unknowns and appending new ones. */
+const reconcileOrder = (orderIds, allowedTabs) => {
+  const tabById = new Map(allowedTabs.map((tab) => [tab.id, tab]));
   const placed = new Set();
   const tabs = [];
 
@@ -41,7 +45,7 @@ const reconcileOrder = (orderIds) => {
       tabs.push(tab);
     }
   }
-  for (const tab of projectTabsData) {
+  for (const tab of allowedTabs) {
     if (!placed.has(tab.id)) tabs.push(tab);
   }
   return tabs;
@@ -49,6 +53,8 @@ const reconcileOrder = (orderIds) => {
 
 export const useProjectTabPreferences = () => {
   const { projectId } = useParams();
+  const { can } = useAuthPermissions();
+
   // Key kept as `tab-order` so existing per-project saves keep working; the
   // value shape grew from `string[]` to `{ order, hidden }` via normalizePrefs.
   const [rawPrefs, setRawPrefs, clearPrefs] = useLocalStorage(
@@ -58,7 +64,10 @@ export const useProjectTabPreferences = () => {
 
   const prefs = normalizePrefs(rawPrefs);
   const hiddenSet = new Set(prefs.hidden);
-  const orderedTabs = reconcileOrder(prefs.order);
+
+  // Drop tabs the signed-in user cannot view before applying order/hidden prefs.
+  const allowedTabs = projectTabsData.filter((tab) => can(tab.permission));
+  const orderedTabs = reconcileOrder(prefs.order, allowedTabs);
 
   const menuTabs = orderedTabs.map((tab) => ({
     ...tab,
@@ -80,7 +89,7 @@ export const useProjectTabPreferences = () => {
   return {
     /** Visible tabs, in display order — what the tab strip renders. */
     tabs,
-    /** Every tab (incl. hidden), in display order — what the customize menu renders. */
+    /** Every allowed tab (incl. preference-hidden), in display order. */
     menuTabs,
     isCustomized: prefs.order.length > 0 || prefs.hidden.length > 0,
     setOrder: (nextTabs) =>

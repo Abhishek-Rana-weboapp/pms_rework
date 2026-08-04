@@ -9,6 +9,7 @@ export const hasFieldErrors = (error) => {
   return (
     !!fieldErrors &&
     typeof fieldErrors === "object" &&
+    !Array.isArray(fieldErrors) &&
     Object.keys(fieldErrors).length > 0
   );
 };
@@ -20,6 +21,9 @@ export const getErrorMessage = (error, fallback) =>
   error?.response?.data?.message ||
   (Array.isArray(error?.response?.data?.errors) &&
     error.response.data.errors[0]) ||
+  (typeof error?.response?.data?.errors === "string"
+    ? error.response.data.errors
+    : null) ||
   fallback;
 
 // Maps a backend validation-error response onto react-hook-form fields.
@@ -61,4 +65,46 @@ export const applyServerFieldErrors = (
   });
 
   return true;
+};
+
+/**
+ * Normalize an API error for forms.
+ *
+ * Backend shapes:
+ *   { message: "...", errors: null }              → toast `message`
+ *   { message: "...", errors: { field: ["…"] } }  → map onto RHF fields
+ *
+ * Returns `{ handled: true, fieldErrors }` when errors were applied inline,
+ * or `{ handled: true, message }` when a toast was shown.
+ */
+export const normalizeError = (
+  error,
+  { setError, fields, fallback = "Something went wrong." } = {},
+) => {
+  if (setError && applyServerFieldErrors(error, setError, { fields })) {
+    return {
+      handled: true,
+      fieldErrors: error.response.data.errors,
+      message: null,
+    };
+  }
+
+  const message = getErrorMessage(error, fallback);
+  toast.error(message);
+  return { handled: true, fieldErrors: null, message };
+};
+
+/**
+ * Flatten backend `{ errors: { field: ["msg"] } }` into `{ field: "msg" }`.
+ * Returns `null` when there are no field errors (caller should toast).
+ */
+export const getServerFieldErrorMap = (error) => {
+  if (!hasFieldErrors(error)) return null;
+
+  return Object.fromEntries(
+    Object.entries(error.response.data.errors).map(([field, messages]) => [
+      field,
+      Array.isArray(messages) ? messages.join(" ") : String(messages),
+    ]),
+  );
 };

@@ -28,6 +28,7 @@ import {
   useUpdateArtifact,
 } from "../../api/artifact/artifactMutations";
 import { useArtifactFormDialog } from "../../context/ArtifactFormDialogStore";
+import { normalizeError } from "@/shared/lib/formErrors";
 import { toast } from "sonner";
 
 const RICHTEXT_FIELDS = new Set(
@@ -35,6 +36,10 @@ const RICHTEXT_FIELDS = new Set(
     .filter(([, cfg]) => cfg.type === "richtext")
     .map(([name]) => name),
 );
+
+// Fields this form renders — backend errors for these show inline; anything
+// else (or errors: null) falls through to a toast via normalizeError.
+const FORM_FIELDS = Object.keys(FIELD_CONFIG);
 
 const buildArtifactFormData = (values) => {
   const formData = new FormData();
@@ -109,8 +114,19 @@ const ArtifactFormBody = ({
 
   const createArtifactMutation = useCreateArtifact();
   const updateArtifactMutation = useUpdateArtifact();
+  const { setError } = methods;
 
   const isEdit = mode === "edit";
+  const typeLabel = presetType || "Artifact";
+
+  const handleServerError = (error) =>
+    normalizeError(error, {
+      setError,
+      fields: FORM_FIELDS,
+      fallback: isEdit
+        ? `Failed to update ${typeLabel}.`
+        : `Failed to create ${typeLabel}.`,
+    });
 
   const onSubmit = (values) => {
     const payload = buildArtifactFormData(values);
@@ -118,24 +134,20 @@ const ArtifactFormBody = ({
     if (!isEdit) {
       createArtifactMutation.mutate(payload, {
         onSuccess: () => {
-          toast.success(`${presetType} created successfully`);
+          toast.success(`${typeLabel} created successfully`);
           close();
         },
-        onError: (error) => {
-          console.log(error);
-        },
+        onError: handleServerError,
       });
     } else {
       updateArtifactMutation.mutate(
         { id: artifact.id, payload },
         {
           onSuccess: () => {
-            toast.success(`${presetType} created successfully`);
+            toast.success(`${typeLabel} updated successfully`);
             close();
           },
-          onError: (error) => {
-            console.log(error);
-          },
+          onError: handleServerError,
         },
       );
     }

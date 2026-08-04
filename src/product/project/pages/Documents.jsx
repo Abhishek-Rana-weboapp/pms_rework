@@ -29,17 +29,16 @@ const Documents = () => {
     // Fill the ProjectLayout content pane and pin scrolling to the list /
     // preview columns — the page itself must not grow past the viewport.
     <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden max-sm:gap-2 sm:gap-4">
+      <SectionWrapper className={"space-y-2"}>
+        <div className="flex items-center justify-between px-2">
+          <h3 className="font-semibold">Documents</h3>
+        </div>
 
-        <SectionWrapper className={"space-y-2"}>
-          <div className="flex items-center justify-between px-2">
-            <h3 className="font-semibold">Documents</h3>
-          </div>
-          
-                <Tabs
+        <Tabs
           value={activeTab.value}
           onValueChange={handleChange}
           className="shrink-0"
-          >
+        >
           <TabsList className="flex items-center gap-2">
             <TabsTrigger value="main-project">Main Project</TabsTrigger>
             <TabsTrigger value="epic">Epics</TabsTrigger>
@@ -49,8 +48,8 @@ const Documents = () => {
             <TabsTrigger value="issue">Issues</TabsTrigger>
             <TabsTrigger value="test">Tests</TabsTrigger>
           </TabsList>
-                </Tabs>
-        </SectionWrapper>
+        </Tabs>
+      </SectionWrapper>
 
       <SectionWrapper className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {activeTab.type === "project" ? (

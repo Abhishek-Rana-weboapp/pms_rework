@@ -9,7 +9,7 @@ const LandingNavbar = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-white/80 backdrop-blur">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+      <nav className="mx-auto flex items-center justify-between px-6 py-3">
         <button
           type="button"
           onClick={() => navigate("/")}
@@ -18,6 +18,24 @@ const LandingNavbar = () => {
         >
           <img src={logo} alt="Logo" className="h-9 w-auto select-none" />
         </button>
+
+        <ul className="flex items-center md:gap-8 gap-4">
+          <li>
+            <a href="#">Features</a>
+          </li>
+          <li>
+            <a href="#">Solutions</a>
+          </li>
+          <li>
+            <a href="#">Pricing</a>
+          </li>
+          <li>
+            <a href="#">Resources</a>
+          </li>
+          <li>
+            <a href="#">Support</a>
+          </li>
+        </ul>
 
         <div className="flex items-center gap-3">
           {canEnterPms ? (

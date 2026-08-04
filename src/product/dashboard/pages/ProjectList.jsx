@@ -13,6 +13,8 @@ import PageLoader from "@/shared/components/layout/PageLoader";
 import { PaginationControls } from "@/shared/components/PaginationControls";
 import { PageSizeSelect } from "@/shared/components/PageSizeSelect";
 import SectionWrapper from "@/shared/components/wrappers/SectionWrapper";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 
 const ProjectList = () => {
   const navigate = useNavigate();
@@ -100,9 +102,11 @@ const ProjectListHeader = ({ projectCount = 0, dataView, setDataView }) => {
       <div className="flex items-center gap-2">
         <ViewToggle value={dataView} onValueChange={setDataView} />
 
-        <Button onClick={openAdd} className="flex gap-1 items-center">
-          <Plus className="h-4 w-4" /> New Project
-        </Button>
+        <PermissionGate permission={PERMISSIONS.PROJECT.ADD}>
+          <Button onClick={openAdd} className="flex gap-1 items-center">
+            <Plus className="h-4 w-4" /> New Project
+          </Button>
+        </PermissionGate>
       </div>
     </SectionWrapper>
   );

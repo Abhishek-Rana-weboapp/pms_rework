@@ -11,9 +11,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/shared/components/ui/sidebar";
+import { useAuthPermissions } from "@/product/auth/hooks/useAuthPermissions";
 
 const DashboardSideBar = () => {
   const { orgUuid } = useParams();
+  const { can } = useAuthPermissions();
 
   return (
     <Sidebar collapsible="icon" className={"bg-white"}>
@@ -32,6 +34,8 @@ const DashboardSideBar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {SideBarItems.map((item) => {
+                if (!can(item.permission)) return null;
+
                 // Build the absolute path from the current org. Strip the trailing
                 // slash so Home ("") resolves to /:orgUuid and not /:orgUuid/.
                 const to = `/${orgUuid}/${item.to}`.replace(/\/$/, "");
@@ -65,4 +69,3 @@ const DashboardSideBar = () => {
 };
 
 export default DashboardSideBar;
-  

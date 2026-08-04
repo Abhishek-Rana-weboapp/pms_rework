@@ -14,7 +14,19 @@ export const initialReportBuilderState = {
     filters: [],
   },
 
+  /** Available options from `reports/edit/` for the edit drawer. */
+  configuration: {
+    columns: [],
+    filters: [],
+    rowGroups: [],
+    columnGroups: [],
+    aggregateColumns: [],
+  },
+
   report: null,
+
+  /** Saved / preview chart attached to the report (`data.chart`). */
+  chart: null,
 
   ui: {
     activeTab: "columns",

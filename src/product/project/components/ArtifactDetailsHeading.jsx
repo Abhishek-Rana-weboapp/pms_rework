@@ -35,8 +35,8 @@ const ArtifactDetailsHeading = ({ artifact }) => {
                 category={artifact?.status_detail?.category}
               />
               <Badge style={{
-                background: priorityColors[artifact?.priority?.id].bg,
-                color: priorityColors[artifact?.priority?.id].text,
+                background: priorityColors[artifact?.priority?.id]?.bg,
+                color: priorityColors[artifact?.priority?.id]?.text,
               }} >{artifact?.priority?.priority}</Badge>
             </div>
           </div>

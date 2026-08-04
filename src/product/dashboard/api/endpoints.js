@@ -67,6 +67,21 @@ export const getAssociatedModule = async (mainModule) => {
   return res.data.data;
 };
 
+export const getReportConfiguration = async (
+  primaryModule,
+  associatedModule,
+) => {
+  const payload = {
+    primary_module: primaryModule,
+  };
+
+  if (associatedModule) {
+    payload.associated_module = associatedModule;
+  }
+
+  const res = await api.post("reports/edit/", payload);
+  return res.data.data;
+};
 
 export const generateReport = async (payload) => {
   const res = await api.post(`reports/generate/`, payload);
@@ -75,5 +90,42 @@ export const generateReport = async (payload) => {
 
 export const getSavedReport = async (reportId) => {
   const res = await api.get(`reports/${reportId}/`);
+  return res.data.data;
+};
+
+export const saveReport = async (payload) => {
+  const res = await api.post("reports/save/", payload);
+  return res.data.data;
+};
+
+export const updateReport = async ({ reportId, payload }) => {
+  const res = await api.put(`reports/${reportId}/`, payload);
+  return res.data.data;
+};
+
+export const createReportChart = async (payload) => {
+  const res = await api.post("reports/charts/", payload);
+  return res.data.data;
+};
+
+export const getReportChart = async (chartId) => {
+  const res = await api.get(`reports/charts/${chartId}/`);
+  return res.data.data;
+};
+
+export const updateReportChart = async ({ chartId, payload }) => {
+  const res = await api.put(`reports/charts/${chartId}/`, payload);
+  return res.data.data;
+};
+
+export const moveChartToDashboard = async (chartId, moveToDashboard = true) => {
+  const res = await api.put(`reports/charts/${chartId}/dashboard/`, {
+    move_to_dashboard: moveToDashboard,
+  });
+  return res.data.data;
+};
+
+export const deleteReportChart = async (chartId) => {
+  const res = await api.delete(`reports/charts/${chartId}/`);
   return res.data.data;
 };

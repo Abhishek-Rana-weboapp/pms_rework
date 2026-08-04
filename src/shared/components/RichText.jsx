@@ -24,7 +24,7 @@ const RichText = ({ html, className, fallback = null }) => {
 
   return (
     <div
-      className={cn("text-sm", RICH_TEXT_CLASS, className)}
+      className={cn("text-sm [&_li]:ml-2", RICH_TEXT_CLASS, className)}
       dangerouslySetInnerHTML={{ __html: clean }}
     />
   );

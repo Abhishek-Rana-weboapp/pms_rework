@@ -14,21 +14,29 @@ import {
 import { Spinner } from "@/shared/components/ui/spinner";
 import { useReportBuilder } from "../../context/ReportBuilderContext";
 import { Button } from "@/shared/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/shared/components/ui/tabs";
+import PageLoader from "@/shared/components/layout/PageLoader";
 
 const ReportEditDrawer = ({
   isOpen,
   onClose,
-  columns,
-  rowGroups,
-  columnGroups,
-  filters,
   onApply,
   isGenerating,
+  isLoadingConfiguration = false,
 }) => {
   const { state, actions } = useReportBuilder();
 
-  const activeTab = state.ui.activeTab;
+  const {
+    columns = [],
+    rowGroups = [],
+    columnGroups = [],
+    filters = [],
+  } = state.configuration;
 
   return (
     <Drawer
@@ -41,51 +49,64 @@ const ReportEditDrawer = ({
       direction="right"
     >
       <DrawerContent className="h-full max-h-full w-full sm:max-w-md">
-        {/* Header */}
-        <DrawerHeader className="border-b px-4 py-3">
-          <DrawerTitle>Report Configuration</DrawerTitle>
+        <Tabs
+          value={state.ui.activeTab}
+          onValueChange={actions.setActiveTab}
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <DrawerHeader className="space-y-3 border-b px-4 py-3">
+            <div>
+              <DrawerTitle>Report Configuration</DrawerTitle>
+              <DrawerDescription>
+                Configure the columns, groups, and filters for your report.
+              </DrawerDescription>
+            </div>
 
-          <DrawerDescription>
-            Configure the columns, groups, and filters for your report.
-          </DrawerDescription>
-
-          <Tabs
-            value={state.ui.activeTab}
-            onValueChange={actions.setActiveTab}
-          >
-            <TabsList>
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="columns">Columns</TabsTrigger>
               <TabsTrigger value="filters">Filters</TabsTrigger>
             </TabsList>
-          </Tabs>
-        </DrawerHeader>
+          </DrawerHeader>
 
-        {/* Scrollable Content */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-          {activeTab === "columns" && (
-            <div className="space-y-4">
-              <GroupSection title="Columns" groups={columns} type="columns" />
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+            {isLoadingConfiguration ? (
+              <PageLoader />
+            ) : (
+              <>
+                <TabsContent value="columns" className="mt-0 space-y-4">
+                  <GroupSection
+                    title="Columns"
+                    groups={columns}
+                    type="columns"
+                  />
 
-              <GroupSection
-                title="Row Groups"
-                groups={rowGroups}
-                type="rowGroups"
-              />
+                  <GroupSection
+                    title="Row Groups"
+                    groups={rowGroups}
+                    type="rowGroups"
+                  />
 
-              <GroupSection
-                title="Column Groups"
-                groups={columnGroups}
-                type="columnGroups"
-              />
-            </div>
-          )}
+                  <GroupSection
+                    title="Column Groups"
+                    groups={columnGroups}
+                    type="columnGroups"
+                  />
+                </TabsContent>
 
-          {activeTab === "filters" && <FilterSection filters={filters} />}
-        </div>
+                <TabsContent value="filters" className="mt-0">
+                  <FilterSection filters={filters} />
+                </TabsContent>
+              </>
+            )}
+          </div>
+        </Tabs>
 
-        {/* Footer */}
         <DrawerFooter className="border-t bg-background px-4 py-3">
-          <Button type="button" disabled={isGenerating} onClick={onApply}>
+          <Button
+            type="button"
+            disabled={isGenerating || isLoadingConfiguration}
+            onClick={onApply}
+          >
             {isGenerating ? (
               <span className="flex items-center gap-2">
                 <Spinner className="size-4" />

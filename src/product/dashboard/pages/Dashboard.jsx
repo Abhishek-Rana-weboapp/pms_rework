@@ -8,6 +8,7 @@ import DashboardRecentProjectSection from "../components/DashboardRecentProjectS
 import DashboardTopPerformersSection from "../components/DashboardTopPerformersSection";
 import PortfolioHealthSection from "../components/PortfolioHealthSection";
 import ResourceUtilizationSection from "../components/ResourceUtilizationSection";
+import DashboardChartsSection from "../components/DashboardChartsSection";
 import { Spinner } from "@/shared/components/ui/spinner";
 import { Button } from "@/shared/components/ui/button";
 
@@ -16,7 +17,7 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-full w-full">
+      <div className="flex h-full w-full items-center justify-center">
         <Spinner />
       </div>
     );
@@ -26,15 +27,14 @@ const Dashboard = () => {
     return (
       <div>
         <div>Failed to Load Dashboard Data</div>
-       <Button onClick={refetch}>Retry</Button>
+        <Button onClick={refetch}>Retry</Button>
       </div>
     );
   }
 
   return (
-    <div className="p-4 space-y-5">
-      {/* Summary Cards Section */}
-      <div className="grid lg:grid-cols-4 grid-cols-2 gap-4">
+    <div className="space-y-5 p-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {dashboardData &&
           Object.keys(dashboardData?.top_cards)?.map((key) => {
             return (
@@ -47,10 +47,8 @@ const Dashboard = () => {
           })}
       </div>
 
-      {/* Project Deliverables Timeline Section */}
-
       <SectionWrapper>
-        <h3 className="font-medium mb-4">Project Deliverables Timeline</h3>
+        <h3 className="mb-4 font-medium">Project Deliverables Timeline</h3>
 
         <div className="flex flex-col">
           {dashboardData &&
@@ -60,7 +58,11 @@ const Dashboard = () => {
         </div>
       </SectionWrapper>
 
-      <div className="grid md:grid-cols-2 grid-cols-1 gap-4 gap-y-5">
+      <div className="w-full min-w-0">
+        <DashboardChartsSection charts={dashboardData?.dashboard_charts ?? []} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 gap-y-5 md:grid-cols-2">
         <DashboardRecentProjectSection
           recentProjects={dashboardData?.recent_projects}
         />
