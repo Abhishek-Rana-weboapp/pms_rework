@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import { DataTableColumnHeader } from "../DataTableColumnHeader";
+import PermissionGate from "@/product/auth/components/PermissionGate";
 
 const createdByColumn = {
   id: "created_by",
@@ -33,43 +34,46 @@ const createdAtColumn = {
 };
 
 /** Actions column — omit entirely when the user can neither edit nor delete. */
-const getActionsColumn = ({ onEdit, onDelete, canEdit = true, canDelete = true }) => {
-  if (!canEdit && !canDelete) return null;
+const getActionsColumn = ({ onEdit, onDelete, editPermission, deletePermission }) => {
 
   return {
     id: "actions",
     size: 60,
     header: () => null,
     cell: ({ row }) => (
-      <div className="flex justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground"
-              aria-label="Row actions"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {canEdit && (
-              <DropdownMenuItem onClick={() => onEdit?.(row.original)}>
-                <Pencil className="size-4" /> Edit
-              </DropdownMenuItem>
-            )}
-            {canDelete && (
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => onDelete?.(row.original)}
+      <PermissionGate mode="any" permission={[editPermission, deletePermission]}>
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground"
+                aria-label="Row actions"
               >
-                <Trash className="size-4" /> Delete
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <PermissionGate mode="all" permission={editPermission}>
+
+                <DropdownMenuItem onClick={() => onEdit?.(row.original)}>
+                  <Pencil className="size-4" /> Edit
+                </DropdownMenuItem>
+              </PermissionGate>
+              <PermissionGate mode="all" permission={deletePermission}>
+
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onClick={() => onDelete?.(row.original)}
+                >
+                  <Trash className="size-4" /> Delete
+                </DropdownMenuItem>
+              </PermissionGate>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </PermissionGate>
     ),
   };
 };
@@ -82,8 +86,8 @@ const withActions = (columns, actionsDeps) => {
 export const getPriorityColumns = ({
   onEdit,
   onDelete,
-  canEdit = true,
-  canDelete = true,
+  editPermission,
+  deletePermission,
 } = {}) =>
   withActions(
     [
@@ -124,14 +128,14 @@ export const getPriorityColumns = ({
       createdByColumn,
       createdAtColumn,
     ],
-    { onEdit, onDelete, canEdit, canDelete },
+    { onEdit, onDelete, editPermission, deletePermission },
   );
 
 export const getStatusColumns = ({
   onEdit,
   onDelete,
-  canEdit = true,
-  canDelete = true,
+  editPermission,
+  deletePermission,
 } = {}) =>
   withActions(
     [
@@ -160,14 +164,14 @@ export const getStatusColumns = ({
       createdByColumn,
       createdAtColumn,
     ],
-    { onEdit, onDelete, canEdit, canDelete },
+    { onEdit, onDelete, editPermission, deletePermission },
   );
 
 export const getProjectTypeColumns = ({
   onEdit,
   onDelete,
-  canEdit = true,
-  canDelete = true,
+  editPermission,
+  deletePermission,
 } = {}) =>
   withActions(
     [
@@ -208,5 +212,5 @@ export const getProjectTypeColumns = ({
       createdByColumn,
       createdAtColumn,
     ],
-    { onEdit, onDelete, canEdit, canDelete },
+    { onEdit, onDelete, editPermission, deletePermission },
   );

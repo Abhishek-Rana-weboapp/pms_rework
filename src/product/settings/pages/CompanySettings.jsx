@@ -13,6 +13,8 @@ import OrganizationSection from "../components/OrganizationSection";
 import ScheduleSection from "../components/ScheduleSection";
 import { useOrganizationSettings } from "../api/settingsQueries";
 import BranchSection from "../components/BranchSection";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 
 const CompanySettings = () => {
   // The whole app is nested under /:orgUuid, so this is always available.
@@ -55,7 +57,9 @@ const CompanySettings = () => {
         <TabsList className="bg-gray-200">
           <TabsTrigger value="org">Organization Details</TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
-          <TabsTrigger value="branch">Company Branch</TabsTrigger>
+          <PermissionGate permission={PERMISSIONS.COMPANY_BRANCH.VIEW}>
+            <TabsTrigger value="branch">Company Branch</TabsTrigger>
+          </PermissionGate>
         </TabsList>
 
         <TabsContent value="org">

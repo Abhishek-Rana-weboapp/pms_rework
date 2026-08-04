@@ -9,6 +9,8 @@ import {
 } from "@/shared/components/ui/dropdown-menu";
 import { Minus, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 
 // Indentation (px) added for each level of nesting.
 const INDENT = 28;
@@ -19,11 +21,17 @@ const TOGGLE_SIZE = 24;
 const getUserCount = (node) =>
   node?.users_count ?? node?.user_count ?? node?.total_users ?? null;
 
-const RoleTreeNode = ({ node, depth, expanded, onToggle, onEdit, onDelete }) => {
+const RoleTreeNode = ({
+  node,
+  depth,
+  expanded,
+  onToggle,
+  onEdit,
+  onDelete,
+}) => {
   const hasChildren = Array.isArray(node.children) && node.children.length > 0;
   const isOpen = expanded.has(node.id);
   const userCount = getUserCount(node);
-
 
   return (
     <div>
@@ -57,7 +65,7 @@ const RoleTreeNode = ({ node, depth, expanded, onToggle, onEdit, onDelete }) => 
         <span
           className={cn(
             "text-sm",
-            hasChildren ? "font-semibold text-gray-900" : "text-gray-600"
+            hasChildren ? "font-semibold text-gray-900" : "text-gray-600",
           )}
         >
           {node.role_name}
@@ -69,30 +77,42 @@ const RoleTreeNode = ({ node, depth, expanded, onToggle, onEdit, onDelete }) => 
           </span>
         )}
 
-        {node.role_name !== "CEO" && <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              aria-label={`Actions for ${node.role_name}`}
-              className="ml-auto flex size-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            >
-              <MoreHorizontal className="size-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit?.(node)}>
-              <Pencil /> Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-red-500"
-              onClick={() => onDelete?.(node)}
-            >
-              <Trash2 /> Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>}
+        {node.role_name !== "CEO" && (
+          <PermissionGate
+            mode="any"
+            permission={[PERMISSIONS.ROLE.CHANGE, PERMISSIONS.ROLE.DELETE]}
+          >
+            {" "}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  aria-label={`Actions for ${node.role_name}`}
+                  className="ml-auto flex size-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <MoreHorizontal className="size-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <PermissionGate mode="all" permission={PERMISSIONS.ROLE.CHANGE}>
+                  <DropdownMenuItem onClick={() => onEdit?.(node)}>
+                    <Pencil /> Edit
+                  </DropdownMenuItem>
+                </PermissionGate>
+                <PermissionGate mode="all" permission={PERMISSIONS.ROLE.DELETE}>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-red-500"
+                    onClick={() => onDelete?.(node)}
+                  >
+                    <Trash2 /> Delete
+                  </DropdownMenuItem>
+                </PermissionGate>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </PermissionGate>
+        )}
       </div>
 
       <AnimatePresence initial={false}>

@@ -5,8 +5,8 @@ import { useCurrentUser } from "@/product/auth/api/authQueries";
 import PermissionGate from "@/product/auth/components/PermissionGate";
 import { PERMISSIONS } from "@/product/auth/config/permissions";
 import { Button } from "@/shared/components/ui/button";
-import { Spinner } from "@/shared/components/ui/spinner";
 import Wrapper from "@/shared/components/wrappers/Wrapper";
+import PageLoader from "./layout/PageLoader";
 
 // Shared profile detail view. Users, employees and clients are all the same
 // userprofile record in our design, so this single component backs all three
@@ -24,9 +24,7 @@ const UserProfileDetails = ({ userId }) => {
 
   if (isLoading) {
     return (
-      <Wrapper className="flex justify-center">
-        <Spinner />
-      </Wrapper>
+      <PageLoader />
     );
   }
 

@@ -36,6 +36,9 @@ import {
   TIMEZONES,
 } from "../config.js/organizationData";
 import { useUpdateOrganizationSettings } from "../api/settingsMutations";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
+import { useAuthPermissions } from "@/product/auth/hooks/useAuthPermissions";
 
 // Field names this form renders — a backend error for any of these is shown
 // inline; anything else falls back to a toast.
@@ -60,6 +63,7 @@ const OrganizationSection = ({ org, orgId }) => {
   const [logoPreview, setLogoPreview] = useState(org?.logo ?? "");
   const [logoError, setLogoError] = useState(false);
   const [pincodeLoading, setPincodeLoading] = useState(false);
+  const { can } = useAuthPermissions();
 
   const {
     register,
@@ -150,6 +154,7 @@ const OrganizationSection = ({ org, orgId }) => {
   };
 
   const onSubmit = (data) => {
+    if(!can(PERMISSIONS.COMPANY_SETTINGS.CHANGE)) return;
     if (!hasChanges) return;
 
     const formData = new FormData();
@@ -520,6 +525,7 @@ const OrganizationSection = ({ org, orgId }) => {
       </fieldset>
 
       <div className="mt-6 flex justify-end gap-2 border-t border-gray-200 pt-4">
+        <PermissionGate permission={PERMISSIONS.COMPANY_SETTINGS.CHANGE}>
         <Button type="submit" disabled={isPending || !hasChanges}>
           {isPending ? (
             <>
@@ -528,8 +534,9 @@ const OrganizationSection = ({ org, orgId }) => {
             </>
           ) : (
             "Save Changes"
-          )}
-        </Button>
+            )}
+          </Button>
+        </PermissionGate>
       </div>
     </form>
   );

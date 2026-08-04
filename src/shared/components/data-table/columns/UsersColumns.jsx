@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 
 // Colors for the invite-status badge. Adjust the keys to match the exact
 // values your API returns for `invite_status`.
@@ -41,7 +43,9 @@ export const getUsersTableColumns = ({ onEdit, onDelete } = {}) => [
         <div className="flex items-center gap-3 py-1">
           <Avatar className="size-9">
             <AvatarImage src={row.original.user_image} />
-            <AvatarFallback>{createInitials(row.original) || "?"}</AvatarFallback>
+            <AvatarFallback>
+              {createInitials(row.original) || "?"}
+            </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
             <div className="truncate font-medium text-foreground">{name}</div>
@@ -103,34 +107,44 @@ export const getUsersTableColumns = ({ onEdit, onDelete } = {}) => [
     header: () => null,
     cell: ({ row }) => (
       <div className="flex justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground"
-              aria-label={`Actions for ${createFullName(row?.original) || "user"}`}
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit?.(row.original);
-              }}
-            >
-              <Pencil className="size-4" /> Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive"
-              onClick={() => onDelete?.(row.original)}
-            >
-              <Trash className="size-4" /> Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <PermissionGate
+          mode="any"
+          permission={[PERMISSIONS.USER.CHANGE, PERMISSIONS.USER.DELETE]}
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground"
+                aria-label={`Actions for ${createFullName(row?.original) || "user"}`}
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <PermissionGate mode="all" permission={PERMISSIONS.USER.CHANGE}>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.(row.original);
+                  }}
+                >
+                  <Pencil className="size-4" /> Edit
+                </DropdownMenuItem>
+              </PermissionGate>
+              <PermissionGate mode="all" permission={PERMISSIONS.USER.DELETE}>
+
+              <DropdownMenuItem
+                className="text-destructive"
+                onClick={() => onDelete?.(row.original)}
+                >
+                  <Trash className="size-4" /> Delete
+                </DropdownMenuItem>
+              </PermissionGate>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </PermissionGate>
       </div>
     ),
   },

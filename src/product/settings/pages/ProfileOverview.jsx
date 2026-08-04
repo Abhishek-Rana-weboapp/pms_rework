@@ -14,6 +14,8 @@ import UserProfileForm from "../components/UserProfileForm";
 import Wrapper from "@/shared/components/wrappers/Wrapper";
 import { Spinner } from "@/shared/components/ui/spinner";
 import { toast } from "sonner";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 
 const ProfileOverview = () => {
   const { userId } = useAuth();
@@ -38,9 +40,11 @@ const ProfileOverview = () => {
   };
 
   if (isLoading) {
-    return <Wrapper className={"flex  justify-center items-center p-4"}>
-      <Spinner className={"size-8"} />
-    </Wrapper>
+    return (
+      <Wrapper className={"flex  justify-center items-center p-4"}>
+        <Spinner className={"size-8"} />
+      </Wrapper>
+    );
   }
 
   return (
@@ -58,20 +62,22 @@ const ProfileOverview = () => {
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
 
-            <label
-              htmlFor="avatar-upload"
-              aria-label="Upload profile photo"
-              className="absolute bottom-0 right-0 z-10 grid size-6 cursor-pointer place-items-center rounded-full bg-primary-foreground text-foreground ring-2 ring-background transition-colors hover:bg-primary/90 hover:text-primary-foreground"
-            >
-              <Camera className="size-4" />
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={handleFileChange}
-              />
-            </label>
+            <PermissionGate permission={PERMISSIONS.USER.CHANGE}>
+              <label
+                htmlFor="avatar-upload"
+                aria-label="Upload profile photo"
+                className="absolute bottom-0 right-0 z-10 grid size-6 cursor-pointer place-items-center rounded-full bg-primary-foreground text-foreground ring-2 ring-background transition-colors hover:bg-primary/90 hover:text-primary-foreground"
+              >
+                <Camera className="size-4" />
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={handleFileChange}
+                />
+              </label>
+            </PermissionGate>
           </div>
 
           <div>

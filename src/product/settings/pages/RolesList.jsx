@@ -26,6 +26,8 @@ import {
 import { Spinner } from "@/shared/components/ui/spinner";
 import { useDeleteRole } from "../api/settingsMutations";
 import { useNavigate } from "react-router-dom";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 
 // Flatten the role tree into { value, label } options for the "Reports To" select.
 const buildReportOptions = (roles = []) => {
@@ -101,12 +103,14 @@ const RolesList = () => {
             </p>
           </div>
 
-          <Button
-            className={"flex sm:text-base text-xs items-center gap-2"}
-            onClick={openCreate}
-          >
-            <Plus /> Create Role
-          </Button>
+          <PermissionGate permission={PERMISSIONS.ROLE.ADD}>
+            <Button
+              className={"flex sm:text-base text-xs items-center gap-2"}
+              onClick={openCreate}
+            >
+              <Plus /> Create Role
+            </Button>
+          </PermissionGate>
         </header>
 
         <div className="mt-5 bg-primary/5 text-primary/80 p-2 sm:text-sm text-xs rounded-lg px-3 flex items-center gap-3">

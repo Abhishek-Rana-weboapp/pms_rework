@@ -14,6 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 
 // Plain uppercase column label to match the design (no sort controls).
 const ColumnLabel = ({ children }) => (
@@ -126,29 +128,38 @@ export const getProfileColumns = ({ onEdit, onDelete } = {}) => [
     header: () => null,
     cell: ({ row }) => (
       <div className="flex justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground"
-              aria-label={`Actions for ${row?.original?.profile_name ?? "profile"}`}
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit?.(row.original)}>
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-destructive"
-              onClick={() => onDelete?.(row.original)}
-            >
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <PermissionGate
+          mode="any"
+          permission={[PERMISSIONS.PROFILE.CHANGE, PERMISSIONS.PROFILE.DELETE]}
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground"
+                aria-label={`Actions for ${row?.original?.profile_name ?? "profile"}`}
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <PermissionGate permission={PERMISSIONS.PROFILE.CHANGE}>
+                <DropdownMenuItem onClick={() => onEdit?.(row.original)}>
+                  Edit
+                </DropdownMenuItem>
+              </PermissionGate>
+              <PermissionGate permission={PERMISSIONS.PROFILE.DELETE}>
+                <DropdownMenuItem
+                variant="destructive"
+                  onClick={() => onDelete?.(row.original)}
+                >
+                  Delete
+                </DropdownMenuItem>
+              </PermissionGate>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </PermissionGate>
       </div>
     ),
   },

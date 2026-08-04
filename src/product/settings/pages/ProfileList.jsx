@@ -5,6 +5,8 @@ import { useNavigate, useNavigation } from "react-router-dom";
 import { useProfiles } from "../api/settingsQueries";
 import { getProfileColumns } from "@/shared/components/data-table/columns/ProfileColumns";
 import { useState } from "react";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 
 // Sum assigned-user counts across profiles (supports array or number).
 const countUsers = (profiles) =>
@@ -49,7 +51,11 @@ const ProfileList = () => {
           <div>
             <div></div>
 
-            <Button disabled={isNavigating} onClick={goToCreate}>Create profile</Button>
+            <PermissionGate permission={PERMISSIONS.PROFILE.ADD}>
+              <Button disabled={isNavigating} onClick={goToCreate}>
+                Create profile
+              </Button>
+            </PermissionGate>
           </div>
         </div>
       </div>

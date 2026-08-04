@@ -30,7 +30,6 @@ import StatusForm from "../components/StatusForm";
 
 const MetaData = () => {
   const { can } = useAuthPermissions();
-  const [activeTab, setActiveTab] = useState("priority");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
@@ -38,19 +37,13 @@ const MetaData = () => {
   const { data: projectTypes = [] } = useProjectTypes();
   const { data: statuses = [] } = useGlobalStatus();
 
-  const editMetaData = (item) => {
-    setSelectedItem(item);
-    setIsOpen(true);
-  };
-
-  // Single source of truth per tab. Columns are built with that tab's
-  // edit/delete permission flags so the actions menu stays in sync.
   const TABS = {
     priority: {
       label: "Priority",
       data: priorities,
       Form: PriorityForm,
       getColumns: getPriorityColumns,
+      viewPermission: PERMISSIONS.PRIORITY.VIEW,
       createPermission: PERMISSIONS.PRIORITY.ADD,
       editPermission: PERMISSIONS.PRIORITY.CHANGE,
       deletePermission: PERMISSIONS.PRIORITY.DELETE,
@@ -60,6 +53,7 @@ const MetaData = () => {
       data: statuses,
       Form: StatusForm,
       getColumns: getStatusColumns,
+      viewPermission: PERMISSIONS.ORGANIZATION_STATUS_TEMPLATE.VIEW,
       createPermission: PERMISSIONS.ORGANIZATION_STATUS_TEMPLATE.ADD,
       editPermission: PERMISSIONS.ORGANIZATION_STATUS_TEMPLATE.CHANGE,
       deletePermission: PERMISSIONS.ORGANIZATION_STATUS_TEMPLATE.DELETE,
@@ -69,44 +63,73 @@ const MetaData = () => {
       data: projectTypes,
       Form: ProjectTypeForm,
       getColumns: getProjectTypeColumns,
+      viewPermission: PERMISSIONS.PROJECT_TYPE.VIEW,
       createPermission: PERMISSIONS.PROJECT_TYPE.ADD,
       editPermission: PERMISSIONS.PROJECT_TYPE.CHANGE,
       deletePermission: PERMISSIONS.PROJECT_TYPE.DELETE,
     },
   };
 
-  const current = TABS[activeTab];
-  const CurrentForm = current.Form;
+  const availableTabKeys = Object.keys(TABS).filter((key) =>
+    can(TABS[key].viewPermission),
+  );
 
-  // React Compiler keeps this stable when deps don't change.
-  const columns = current.getColumns({
-    onEdit: editMetaData,
-    onDelete: () => {},
-    canEdit: can(current.editPermission),
-    canDelete: can(current.deletePermission),
-  });
+  const [activeTab, setActiveTab] = useState(availableTabKeys[0] ?? "");
+
+  // Keep selection on a permitted tab (e.g. after permissions resolve / change).
+  if (availableTabKeys.length > 0 && !availableTabKeys.includes(activeTab)) {
+    setActiveTab(availableTabKeys[0]);
+  }
+
+  const editMetaData = (item) => {
+    setSelectedItem(item);
+    setIsOpen(true);
+  };
+
+  const current = TABS[activeTab];
 
   const closeDialog = () => {
     setIsOpen(false);
     setSelectedItem(null);
   };
 
+  if (!current) {
+    return (
+      <Wrapper>
+        <div className="rounded-md bg-white p-4 shadow">
+          <h1 className="text-lg font-semibold">Meta Data</h1>
+          <p className="text-sm text-gray-500">
+            You don&apos;t have permission to view any metadata.
+          </p>
+        </div>
+      </Wrapper>
+    );
+  }
+
+  const CurrentForm = current.Form;
+  const columns = current.getColumns({
+    onEdit: editMetaData,
+    onDelete: () => {},
+    editPermission: current.editPermission,
+    deletePermission: current.deletePermission,
+  });
+
   return (
     <Wrapper>
-      <div className="p-4 rounded-md shadow bg-white">
+      <div className="rounded-md bg-white p-4 shadow">
         <h1 className="text-lg font-semibold">Meta Data</h1>
-        <p className="text-sm text-gray-500 ">
+        <p className="text-sm text-gray-500">
           Manage priorities, project types and statuses
         </p>
       </div>
 
-      <div className="mt-4 flex justify-between items-center">
+      <div className="mt-4 flex items-center justify-between">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={"bg-gray-200"}>
-            {Object.entries(TABS).map(([value, { label }]) => (
-              <TabsTrigger key={value} value={value}>
-                {label}
-              </TabsTrigger>
+          <TabsList className="bg-gray-200">
+            {Object.entries(TABS).map(([value, { label, viewPermission }]) => (
+              <PermissionGate key={value} permission={viewPermission}>
+                <TabsTrigger value={value}>{label}</TabsTrigger>
+              </PermissionGate>
             ))}
           </TabsList>
         </Tabs>
@@ -141,7 +164,7 @@ const MetaData = () => {
         </div>
       </div>
 
-      <div className="bg-white p-4 mt-5 shadow rounded-md">
+      <div className="mt-5 rounded-md bg-white p-4 shadow">
         <DataTable
           columns={columns}
           data={current.data}

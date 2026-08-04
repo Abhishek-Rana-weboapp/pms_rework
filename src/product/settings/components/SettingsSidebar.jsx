@@ -11,6 +11,7 @@ import {
   SidebarMenuItem,
 } from "@/shared/components/ui/sidebar";
 import { settingsSidebarItems } from "../config.js/SettingsSidebarData";
+import PermissionGate from "@/product/auth/components/PermissionGate";
 
 const SettingsSidebar = () => {
   const { orgUuid } = useParams();
@@ -35,23 +36,25 @@ const SettingsSidebar = () => {
                 const to = `/${orgUuid}/profile-settings/${item.to}`.replace(/\/$/, "");
 
                 return (
-                   <SidebarMenuItem key={item.to}>
-                    <SidebarMenuButton
-                      asChild
-                      tooltip={item.title}
-                      className="h-10 text-gray-600 hover:bg-primary/10 hover:text-primary aria-[current=page]:bg-primary/10 aria-[current=page]:border-l-4 transition aria-[current=page]:border-primary  aria-[current=page]:text-primary aria-[current=page]:font-medium"
-                    >
-                      <NavLink
-                        to={to}
-                        end={item.to === ""}
-                        onMouseEnter={item.prefetch}
-                        onFocus={item.prefetch}
+                   <PermissionGate permission={item.permission} mode={item.mode || "all"}>
+                     <SidebarMenuItem key={item.to}>
+                      <SidebarMenuButton
+                        asChild
+                        tooltip={item.title}
+                        className="h-10 text-gray-600 hover:bg-primary/10 hover:text-primary aria-[current=page]:bg-primary/10 aria-[current=page]:border-l-4 transition aria-[current=page]:border-primary  aria-[current=page]:text-primary aria-[current=page]:font-medium"
                       >
-                        {item.icon}
-                        <span>{item.title}</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                        <NavLink
+                          to={to}
+                          end={item.to === ""}
+                          onMouseEnter={item.prefetch}
+                          onFocus={item.prefetch}
+                        >
+                          {item.icon && <span className="mr-2">{item.icon}</span>}
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                                       </SidebarMenuItem>
+                   </PermissionGate>
                 );
               })}
             </SidebarMenu>

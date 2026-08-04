@@ -21,6 +21,8 @@ import { Pencil } from "lucide-react";
 import { Spinner } from "@/shared/components/ui/spinner";
 import { toast } from "sonner";
 import { applyServerFieldErrors } from "@/shared/lib/formErrors";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 
 // Fields this form renders — a backend error for any of these is shown inline;
 // anything else falls back to a toast.
@@ -91,9 +93,11 @@ const UserProfileForm = () => {
         {isEditing ? (
           <></>
         ) : (
-          <Button type="button" onClick={() => setIsEditing(true)}>
-            <Pencil className="size-3" /> Edit
-          </Button>
+          <PermissionGate permission={PERMISSIONS.USER.CHANGE}>
+            <Button type="button" onClick={() => setIsEditing(true)}>
+              <Pencil className="size-3" /> Edit
+            </Button>
+          </PermissionGate>
         )}
       </div>
 

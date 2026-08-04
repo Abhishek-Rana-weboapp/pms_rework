@@ -26,6 +26,7 @@ import {
 import { useProfile, usePermissions } from "../api/settingsQueries";
 import { useCreateProfile, useUpdateProfile } from "../api/profileMutations";
 import Wrapper from "@/shared/components/wrappers/Wrapper";
+import { Spinner } from "@/shared/components/ui/spinner";
 
 // A single square checkbox + label, controlled by `checked`.
 const PermissionCheckbox = ({ label, checked, onChange }) => (
@@ -390,7 +391,7 @@ const ProfileForm = () => {
             <div className="space-y-3">
               {permissionsLoading && modules.length === 0 ? (
                 <div className="rounded-xl border bg-background p-6 text-center text-sm text-muted-foreground">
-                  Loading permissions...
+                  <Spinner />
                 </div>
               ) : (
                 modules.map((module) => (

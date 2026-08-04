@@ -25,6 +25,8 @@ import { applyServerFieldErrors } from "@/shared/lib/formErrors";
 import { scheduleSchema, mapApiToSchedule } from "../config.js/settingsSchemas";
 import { CURRENCIES, WORKING_DAYS } from "../config.js/organizationData";
 import { useUpdateOrganizationSettings } from "../api/settingsMutations";
+import PermissionGate from "@/product/auth/components/PermissionGate";
+import { PERMISSIONS } from "@/product/auth/config/permissions";
 
 const SCHEDULE_FIELDS = ["currency", "start_time", "end_time", "working_days"];
 
@@ -195,16 +197,18 @@ const ScheduleSection = ({ org, orgId }) => {
       </fieldset>
 
       <div className="mt-6 flex justify-end gap-2 border-t border-gray-200 pt-4">
+        <PermissionGate permission={PERMISSIONS.COMPANY_SETTINGS.CHANGE}>
         <Button type="submit" disabled={isPending || !isDirty}>
-          {isPending ? (
-            <>
-              <Spinner />
-              Saving...
-            </>
-          ) : (
-            "Save Changes"
-          )}
-        </Button>
+            {isPending ? (
+              <>
+                <Spinner />
+                Saving...
+              </>
+            ) : (
+              "Save Changes"
+            )}
+          </Button>
+        </PermissionGate>
       </div>
     </form>
   );
